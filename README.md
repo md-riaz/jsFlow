@@ -52,12 +52,14 @@
 
 ## Demo
 
-Open `examples/basic/index.html` in a browser (served via any static file server — ES modules require HTTP).
+Open the live demo in `docs/index.html` (served via any static file server — ES modules require HTTP).
 
 ```bash
-npx serve .
-# then open http://localhost:3000/examples/basic/
+npx serve docs
+# then open http://localhost:3000/
 ```
+
+The `docs/src` directory vendors the library source so the demo works on GitHub Pages; update it alongside `src/` changes.
 
 ---
 
@@ -76,10 +78,10 @@ jsflow/
 │   ├── plugins/         PluginSystem
 │   ├── styles/          flow-editor.css
 │   └── index.js         Library entry
-├── examples/
-│   └── basic/           Working demo (index.html + app.js)
 └── docs/
-    ├── index.md         Landing page for GitHub Pages
+    ├── index.html       Live demo (GitHub Pages)
+    ├── app.js           Demo application logic
+    ├── src/             Bundled source for docs hosting
     └── api/
         └── index.md     Full API reference
 ```
