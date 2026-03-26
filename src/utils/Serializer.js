@@ -58,6 +58,9 @@ export function importGraph(data) {
     targetHandle: String(e.targetHandle ?? 'top'),
     type: String(e.type ?? 'bezier'),
     label: e.label ?? '',
+    animated: Boolean(e.animated ?? false),
+    markerEnd: e.markerEnd != null ? String(e.markerEnd) : undefined,
+    markerColor: e.markerColor != null ? String(e.markerColor) : undefined,
     data: e.data ?? {},
     selected: false,
   }));

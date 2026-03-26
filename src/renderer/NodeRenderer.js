@@ -62,6 +62,8 @@ export class NodeRenderer {
     el.className = 'jf-node';
     el.dataset.nodeId = node.id;
     el.dataset.nodeType = node.type;
+    el.dataset.renderedWidth  = node.width;
+    el.dataset.renderedHeight = node.height;
     el.style.cssText = `position:absolute;width:${node.width}px;min-height:${node.height}px;left:${node.x}px;top:${node.y}px;`;
 
     this._renderNodeContent(node, el);
@@ -79,8 +81,15 @@ export class NodeRenderer {
 
     el.style.left    = `${node.x}px`;
     el.style.top     = `${node.y}px`;
-    el.style.width   = `${node.width}px`;
+
+    const prevW = Number(el.dataset.renderedWidth);
+    const prevH = Number(el.dataset.renderedHeight);
+    const sizeChanged = prevW !== node.width || prevH !== node.height;
+
+    el.style.width     = `${node.width}px`;
     el.style.minHeight = `${node.height}px`;
+    el.dataset.renderedWidth  = node.width;
+    el.dataset.renderedHeight = node.height;
 
     el.classList.toggle('jf-node--selected', !!node.selected);
 
@@ -89,6 +98,11 @@ export class NodeRenderer {
     if (body) {
       const renderer = this._registry.get(node.type);
       renderer ? renderer(node, body) : this._defaultContent(node, body);
+    }
+
+    // Re-render handles when dimensions changed so ports stay aligned
+    if (sizeChanged) {
+      this._renderHandles(node, el);
     }
   }
 

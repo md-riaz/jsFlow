@@ -98,6 +98,35 @@ See **[docs/API.md](docs/API.md)** for complete documentation including:
 
 ---
 
+## Comparison with Other Libraries
+
+| Feature | **jsFlow** | [React Flow](https://reactflow.dev) | [Vue Flow](https://vueflow.dev) | [Drawflow](https://github.com/jerosoler/Drawflow) | [jsPlumb](https://jsplumbtoolkit.com) |
+|---|---|---|---|---|---|
+| Framework dependency | None (Vanilla JS) | React | Vue 3 | None | None |
+| Bundle size (min+gz) | ~15 KB | ~60 KB | ~45 KB | ~17 KB | ~100 KB+ |
+| HTML nodes | ✅ | ✅ | ✅ | ✅ | ✅ |
+| SVG edges | ✅ (Bezier / Smooth / Straight) | ✅ | ✅ | ✅ | ✅ |
+| Animated edges | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Drag-to-connect | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Snap to grid | ✅ | ✅ | ✅ | ❌ | ✅ |
+| Marquee selection | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Minimap | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Undo / redo | ✅ | ❌ (external) | ❌ (external) | ❌ | ❌ |
+| JSON import/export | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Custom node renderers | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Plugin system | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Readonly mode | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Background variants | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Node resize | ✅ | ✅ (add-on) | ✅ | ❌ | ✅ |
+| TypeScript types | JSDoc | ✅ | ✅ | Partial | ✅ |
+| License | MIT | MIT | MIT | MIT | Commercial / MIT |
+
+> jsFlow is the only zero-dependency option with built-in undo/redo and a plugin architecture. Choose React Flow or Vue Flow when you are already using those frameworks and need their ecosystem.
+
+---
+
+
+
 ## License
 
 MIT

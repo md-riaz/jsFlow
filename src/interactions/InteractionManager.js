@@ -65,20 +65,27 @@ export class InteractionManager {
 
   _bindEvents() {
     const c = this._container;
-    c.addEventListener('pointerdown',  this._onPointerDown.bind(this));
-    c.addEventListener('pointermove',  this._onPointerMove.bind(this));
-    c.addEventListener('pointerup',    this._onPointerUp.bind(this));
-    c.addEventListener('pointercancel',this._onPointerUp.bind(this));
-    c.addEventListener('wheel',        this._onWheel.bind(this), { passive: false });
-    c.addEventListener('contextmenu',  this._onContextMenu.bind(this));
+    this._onPointerDownBound   = this._onPointerDown.bind(this);
+    this._onPointerMoveBound   = this._onPointerMove.bind(this);
+    this._onPointerUpBound     = this._onPointerUp.bind(this);
+    this._onWheelBound         = this._onWheel.bind(this);
+    this._onContextMenuBound   = this._onContextMenu.bind(this);
+    this._onKeyDownBound       = this._onKeyDown.bind(this);
+    this._onKeyUpBound         = this._onKeyUp.bind(this);
+    this._hideContextMenuBound = () => this._renderer.hideContextMenu();
 
-    this._onKeyDownBound = this._onKeyDown.bind(this);
-    this._onKeyUpBound   = this._onKeyUp.bind(this);
+    c.addEventListener('pointerdown',   this._onPointerDownBound);
+    c.addEventListener('pointermove',   this._onPointerMoveBound);
+    c.addEventListener('pointerup',     this._onPointerUpBound);
+    c.addEventListener('pointercancel', this._onPointerUpBound);
+    c.addEventListener('wheel',         this._onWheelBound, { passive: false });
+    c.addEventListener('contextmenu',   this._onContextMenuBound);
+
     window.addEventListener('keydown', this._onKeyDownBound);
     window.addEventListener('keyup',   this._onKeyUpBound);
 
     // Close context menu on outside click
-    document.addEventListener('click', () => this._renderer.hideContextMenu(), true);
+    document.addEventListener('click', this._hideContextMenuBound, true);
   }
 
   // ── Pointer down ──────────────────────────────────────────────────────────
@@ -280,7 +287,7 @@ export class InteractionManager {
         });
         break;
       case 'connecting':
-        this._endConnect(screenX, screenY, e.target);
+        this._endConnect(screenX, screenY, document.elementFromPoint(e.clientX, e.clientY));
         break;
     }
     this._mode = 'idle';
@@ -544,8 +551,15 @@ export class InteractionManager {
   // ── Destroy ───────────────────────────────────────────────────────────────
 
   destroy() {
-    window.removeEventListener('keydown', this._onKeyDownBound);
-    window.removeEventListener('keyup',   this._onKeyUpBound);
-    document.removeEventListener('click', this._renderer.hideContextMenu);
+    const c = this._container;
+    c.removeEventListener('pointerdown',   this._onPointerDownBound);
+    c.removeEventListener('pointermove',   this._onPointerMoveBound);
+    c.removeEventListener('pointerup',     this._onPointerUpBound);
+    c.removeEventListener('pointercancel', this._onPointerUpBound);
+    c.removeEventListener('wheel',         this._onWheelBound);
+    c.removeEventListener('contextmenu',   this._onContextMenuBound);
+    window.removeEventListener('keydown',  this._onKeyDownBound);
+    window.removeEventListener('keyup',    this._onKeyUpBound);
+    document.removeEventListener('click',  this._hideContextMenuBound, true);
   }
 }
