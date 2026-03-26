@@ -172,15 +172,21 @@ export class InteractionManager {
     }
 
     // ── Canvas background → pan or marquee ─────────────────────────────────
-    if (e.button === 1 || (e.button === 0 && (e.altKey || this._spaceDown))) {
+    if (e.button === 1 || this._spaceDown || e.altKey) {
       this._startPan(screenX, screenY); return;
     }
 
     if (e.button === 0) {
-      if (!(e.shiftKey || e.metaKey || e.ctrlKey)) this._store.clearSelection();
-      this._mode         = 'marquee';
-      this._marqueeStart = { x: screenX, y: screenY };
-      this._store.setMarquee({ active: true, x: screenX, y: screenY, width: 0, height: 0 });
+      if (e.shiftKey || e.metaKey || e.ctrlKey) {
+        // Modifier + drag = marquee selection
+        this._mode         = 'marquee';
+        this._marqueeStart = { x: screenX, y: screenY };
+        this._store.setMarquee({ active: true, x: screenX, y: screenY, width: 0, height: 0 });
+      } else {
+        // Plain left drag = pan; clear selection on click
+        this._store.clearSelection();
+        this._startPan(screenX, screenY);
+      }
     }
   }
 
@@ -281,10 +287,6 @@ export class InteractionManager {
       case 'resizing-node':  this._endResize();                            break;
       case 'marquee':
         this._store.setMarquee({ active: false });
-        this._emitter.emit('selectionChange', {
-          nodes: [...this._store.selectedNodeIds],
-          edges: [...this._store.selectedEdgeIds],
-        });
         break;
       case 'connecting':
         this._endConnect(screenX, screenY, document.elementFromPoint(e.clientX, e.clientY));
@@ -318,6 +320,7 @@ export class InteractionManager {
   _endConnect(sx, sy, target) {
     this._store.setConnection({ active: false });
 
+    if (!target) return;
     const handle = /** @type {HTMLElement} */ (target).closest?.('.jf-handle[data-handle-type="target"]');
     if (!handle) return;
 
@@ -428,7 +431,14 @@ export class InteractionManager {
 
   /** @param {KeyboardEvent} e */
   _onKeyDown(e) {
-    if (e.key === ' ') this._spaceDown = true;
+    // Space toggles pan mode — only when not typing in a form field
+    if (e.key === ' ') {
+      if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {
+        this._spaceDown = true;
+        e.preventDefault(); // prevent page scroll
+      }
+      return;
+    }
     if (this._options.readonly) return;
     if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) return;
 

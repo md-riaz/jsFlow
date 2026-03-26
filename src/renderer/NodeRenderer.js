@@ -72,6 +72,23 @@ export class NodeRenderer {
 
     this._layer.appendChild(el);
     this._els.set(node.id, el);
+
+    // Sync actual rendered height to the model so edge endpoints land on the
+    // visual card edge rather than inside it.
+    this._scheduleHeightSync(node.id);
+  }
+
+  /** @param {string} nodeId */
+  _scheduleHeightSync(nodeId) {
+    requestAnimationFrame(() => {
+      const el   = this._els.get(nodeId);
+      const node = this._store.nodes.get(nodeId);
+      if (!el || !node) return;
+      const actualH = el.offsetHeight;
+      if (actualH > 0 && actualH !== node.height) {
+        this._store.updateNode(nodeId, { height: actualH });
+      }
+    });
   }
 
   /** @param {NodeModel} node */
