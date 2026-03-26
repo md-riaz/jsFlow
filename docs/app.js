@@ -3,7 +3,7 @@
  * Demonstrates all editor features with multiple scenario presets.
  */
 
-import { FlowEditor } from '../../src/core/FlowEditor.js';
+import { FlowEditor } from './src/core/FlowEditor.js';
 
 // ── Scenario data ────────────────────────────────────────────────────────────
 
