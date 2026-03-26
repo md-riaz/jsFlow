@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>jsFlow — Visual Flow Editor Demo</title>
+  <link rel="stylesheet" href="../../src/styles/flow-editor.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: #0a0c14;
+      color: #e2e4f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    #app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── Top bar ─────────────────────────────────────────────────── */
+    #topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      height: 48px;
+      background: #12141f;
+      border-bottom: 1px solid #1e2132;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    #topbar h1 {
+      font-size: 16px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #7ba0ff, #43c89c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-right: 8px;
+    }
+
+    .tb-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: rgba(79, 125, 243, 0.12);
+      border: 1px solid rgba(79, 125, 243, 0.3);
+      border-radius: 6px;
+      color: #c0c4d8;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+
+    .tb-btn:hover { background: rgba(79, 125, 243, 0.22); color: #fff; border-color: #4f7df3; }
+
+    .tb-sep { width: 1px; height: 24px; background: #1e2132; margin: 0 4px; }
+
+    .tb-label {
+      font-size: 11px;
+      color: #5a5e72;
+    }
+
+    /* ── Main content ────────────────────────────────────────────── */
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────────────── */
+    #sidebar {
+      width: 220px;
+      background: #12141f;
+      border-right: 1px solid #1e2132;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-section {
+      padding: 12px;
+      border-bottom: 1px solid #1e2132;
+    }
+
+    .sidebar-section h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #5a5e72;
+      margin-bottom: 8px;
+    }
+
+    .node-palette-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #1e2132;
+      background: #1a1c2c;
+      cursor: grab;
+      font-size: 12px;
+      color: #c0c4d8;
+      margin-bottom: 6px;
+      transition: background 0.1s, border-color 0.1s;
+    }
+
+    .node-palette-item:hover { background: #20233a; border-color: #3a3d5a; color: #fff; }
+    .node-palette-item .icon { font-size: 15px; }
+
+    /* ── Canvas ──────────────────────────────────────────────────── */
+    #canvas {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Properties panel ────────────────────────────────────────── */
+    #props-panel {
+      width: 240px;
+      background: #12141f;
+      border-left: 1px solid #1e2132;
+      padding: 12px;
+      overflow-y: auto;
+      flex-shrink: 0;
+      display: none;
+    }
+
+    #props-panel.active { display: block; }
+
+    #props-panel h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #5a5e72;
+      margin-bottom: 12px;
+    }
+
+    .prop-row {
+      margin-bottom: 10px;
+    }
+
+    .prop-row label {
+      display: block;
+      font-size: 11px;
+      color: #8b8fa8;
+      margin-bottom: 4px;
+    }
+
+    .prop-row input, .prop-row select {
+      width: 100%;
+      background: #1a1c2c;
+      border: 1px solid #2e3250;
+      border-radius: 4px;
+      color: #e2e4f0;
+      padding: 5px 8px;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.12s;
+    }
+
+    .prop-row input:focus, .prop-row select:focus { border-color: #4f7df3; }
+
+    /* ── Status bar ──────────────────────────────────────────────── */
+    #statusbar {
+      height: 28px;
+      background: #12141f;
+      border-top: 1px solid #1e2132;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      font-size: 11px;
+      color: #5a5e72;
+      flex-shrink: 0;
+    }
+
+    #statusbar span { color: #8b8fa8; }
+  </style>
+</head>
+<body>
+<div id="app-shell">
+
+  <!-- ── Top bar ────────────────────────────────────────────────── -->
+  <div id="topbar">
+    <h1>jsFlow</h1>
+    <div class="tb-sep"></div>
+
+    <button class="tb-btn" id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
+    <button class="tb-btn" id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
+
+    <div class="tb-sep"></div>
+
+    <button class="tb-btn" id="btn-fit">⊡ Fit View</button>
+    <button class="tb-btn" id="btn-export">⬆ Export</button>
+    <button class="tb-btn" id="btn-import">⬇ Import</button>
+
+    <div class="tb-sep"></div>
+
+    <button class="tb-btn" id="btn-readonly">🔒 Toggle Readonly</button>
+
+    <div class="tb-sep"></div>
+    <span class="tb-label" id="lbl-nodes">0 nodes</span>
+    <span class="tb-label" id="lbl-edges">0 edges</span>
+    <span class="tb-label" id="lbl-selected">0 selected</span>
+  </div>
+
+  <!-- ── Main ───────────────────────────────────────────────────── -->
+  <div id="main">
+
+    <!-- Sidebar / node palette -->
+    <div id="sidebar">
+      <div class="sidebar-section">
+        <h3>Node Types</h3>
+        <div class="node-palette-item" draggable="true" data-type="input"    data-label="Start">    <span class="icon">▶</span> Start</div>
+        <div class="node-palette-item" draggable="true" data-type="action"   data-label="Action">   <span class="icon">⚡</span> Action</div>
+        <div class="node-palette-item" draggable="true" data-type="decision" data-label="Decision"> <span class="icon">⬡</span> Decision</div>
+        <div class="node-palette-item" draggable="true" data-type="default"  data-label="Process">  <span class="icon">⬜</span> Process</div>
+        <div class="node-palette-item" draggable="true" data-type="output"   data-label="End">      <span class="icon">⏹</span> End</div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3>Keyboard Shortcuts</h3>
+        <div style="font-size:11px; color:#5a5e72; line-height:1.8;">
+          <div><b>Delete</b> — remove selected</div>
+          <div><b>Esc</b> — deselect</div>
+          <div><b>Ctrl+A</b> — select all</div>
+          <div><b>Ctrl+Z</b> — undo</div>
+          <div><b>Ctrl+Y</b> — redo</div>
+          <div><b>Scroll</b> — zoom</div>
+          <div><b>Middle drag</b> — pan</div>
+          <div><b>Drag canvas</b> — marquee</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <div id="canvas"></div>
+
+    <!-- Properties panel -->
+    <div id="props-panel">
+      <h3>Properties</h3>
+      <div id="props-content"></div>
+    </div>
+
+  </div>
+
+  <!-- Status bar -->
+  <div id="statusbar">
+    <span id="sb-zoom">Zoom: 100%</span>
+    <span id="sb-pan">Pan: 0, 0</span>
+    <span id="sb-mode">Mode: normal</span>
+  </div>
+
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
