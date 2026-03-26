@@ -1,7 +1,7 @@
 /**
  * @module EdgeRenderer
  * Renders SVG edges (bezier / smooth-step / straight) in the world-space SVG layer.
- * Supports custom edge renderers and a live connection-preview path.
+ * Supports: arrowhead markers, animated edges, labels, custom edge renderers, live preview.
  */
 
 import { bezierPath, smoothStepPath, handlePosition } from '../utils/Geometry.js';
@@ -13,6 +13,10 @@ import { bezierPath, smoothStepPath, handlePosition } from '../utils/Geometry.js
  */
 
 const NS = 'http://www.w3.org/2000/svg';
+
+/** Default arrowhead marker ID prefix */
+const MARKER_DEFAULT = 'jf-arrow-default';
+const MARKER_SELECTED = 'jf-arrow-selected';
 
 export class EdgeRenderer {
   /**
@@ -28,11 +32,68 @@ export class EdgeRenderer {
     this._registry = new Map();
     /** @type {SVGPathElement|null} */
     this._previewPath = null;
+
+    this._setupDefs();
+
     /** @type {SVGGElement} */
     this._edgeGroup = this._createGroup('jf-edges');
     /** @type {SVGGElement} */
     this._previewGroup = this._createGroup('jf-edge-preview');
   }
+
+  // ── Arrowhead defs ────────────────────────────────────────────────────────
+
+  _setupDefs() {
+    const defs = document.createElementNS(NS, 'defs');
+
+    // Default arrowhead (grey)
+    defs.appendChild(this._makeMarker(MARKER_DEFAULT, '#4a5080'));
+    // Selected arrowhead (blue)
+    defs.appendChild(this._makeMarker(MARKER_SELECTED, '#4f7df3'));
+    // Animated arrowhead (lighter blue)
+    defs.appendChild(this._makeMarker('jf-arrow-animated', '#7ba0ff'));
+
+    this._svg.insertBefore(defs, this._svg.firstChild);
+    this._defs = defs;
+  }
+
+  /**
+   * Create an SVG arrowhead marker element.
+   * @param {string} id
+   * @param {string} color
+   * @returns {SVGMarkerElement}
+   */
+  _makeMarker(id, color) {
+    const marker = document.createElementNS(NS, 'marker');
+    marker.setAttribute('id', id);
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '8');
+    marker.setAttribute('refY', '5');
+    marker.setAttribute('markerWidth', '6');
+    marker.setAttribute('markerHeight', '6');
+    marker.setAttribute('orient', 'auto-start-reverse');
+
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+    path.setAttribute('fill', color);
+    marker.appendChild(path);
+    return marker;
+  }
+
+  /**
+   * Ensure a custom-colour arrowhead marker exists in defs.
+   * @param {string} color
+   * @returns {string} marker id
+   */
+  _ensureColorMarker(color) {
+    const id = `jf-arrow-${color.replace(/[^a-z0-9]/gi, '')}`;
+    if (!this._svg.getElementById(id)) {
+      this._defs.appendChild(this._makeMarker(id, color));
+    }
+    return id;
+  }
+
+  // ── Registration ──────────────────────────────────────────────────────────
 
   /**
    * Register a custom path renderer for an edge type.
@@ -42,6 +103,8 @@ export class EdgeRenderer {
   registerEdgeType(type, fn) {
     this._registry.set(type, fn);
   }
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   /**
    * Full reconciliation render of all edges.
@@ -80,6 +143,7 @@ export class EdgeRenderer {
    */
   _createElement(edge, sourceNode, targetNode) {
     const g = document.createElementNS(NS, 'g');
+    g.classList.add('jf-edge');
     g.dataset.edgeId = edge.id;
 
     // Invisible wide hit area
@@ -127,18 +191,37 @@ export class EdgeRenderer {
     hitPath.setAttribute('d', d);
     visPath.setAttribute('d', d);
 
-    g.classList.toggle('jf-edge--selected', edge.selected);
+    // Selection + animation classes
+    g.classList.toggle('jf-edge--selected', !!edge.selected);
+    g.classList.toggle('jf-edge--animated', !!edge.animated);
 
-    // Label
+    // Arrowhead marker
+    if (edge.markerEnd !== false) {
+      let markerId;
+      if (edge.markerColor) {
+        markerId = this._ensureColorMarker(edge.markerColor);
+      } else if (edge.selected) {
+        markerId = MARKER_SELECTED;
+      } else if (edge.animated) {
+        markerId = 'jf-arrow-animated';
+      } else {
+        markerId = MARKER_DEFAULT;
+      }
+      visPath.setAttribute('marker-end', `url(#${markerId})`);
+    } else {
+      visPath.removeAttribute('marker-end');
+    }
+
+    // Label — place at the midpoint of the path
     const labelGroup = g.querySelector('.jf-edge__label-group');
     labelGroup.innerHTML = '';
     if (edge.label) {
       const midX = (src.x + tgt.x) / 2;
       const midY = (src.y + tgt.y) / 2;
       const fo = document.createElementNS(NS, 'foreignObject');
-      fo.setAttribute('width', '120');
+      fo.setAttribute('width', '140');
       fo.setAttribute('height', '28');
-      fo.setAttribute('x', String(midX - 60));
+      fo.setAttribute('x', String(midX - 70));
       fo.setAttribute('y', String(midY - 14));
       const div = document.createElement('div');
       div.className = 'jf-edge__label';
@@ -171,6 +254,8 @@ export class EdgeRenderer {
     }
   }
 
+  // ── Connection preview ────────────────────────────────────────────────────
+
   /**
    * Render the live connection-preview path.
    * @param {{ x: number, y: number }} src
@@ -194,6 +279,8 @@ export class EdgeRenderer {
       this._previewPath.style.display = 'none';
     }
   }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   /**
    * @param {string} className

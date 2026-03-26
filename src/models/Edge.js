@@ -16,6 +16,9 @@ import { uid } from '../utils/Geometry.js';
  * @property {string} label
  * @property {Object} data
  * @property {boolean} selected
+ * @property {boolean} animated     - If true, renders a flowing dash animation
+ * @property {boolean} markerEnd    - If true, shows an arrowhead at the target end
+ * @property {string}  markerColor  - Custom arrowhead colour (defaults to stroke colour)
  */
 
 /**
@@ -34,5 +37,8 @@ export function createEdge(partial = {}) {
     label: partial.label ?? '',
     data: partial.data ?? {},
     selected: partial.selected ?? false,
+    animated: partial.animated ?? false,
+    markerEnd: partial.markerEnd !== undefined ? partial.markerEnd : true,
+    markerColor: partial.markerColor ?? '',
   };
 }
