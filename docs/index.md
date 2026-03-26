@@ -88,7 +88,7 @@ jsflow/
 
 ## API
 
-See **[API reference](docs/api/index.md)** for complete documentation including:
+See **[API reference](./api/index.md)** for complete documentation including:
 - Constructor options
 - Node & edge CRUD methods
 - Viewport controls
