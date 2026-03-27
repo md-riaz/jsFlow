@@ -98,7 +98,7 @@ export class InteractionManager {
     // Ignore pointer starts from built-in UI controls so clicks/taps work
     // consistently on both desktop and touch devices.
     const target = e.target;
-    if (target.closest?.('.jf-controls, .jf-context-menu')) return;
+    if (target instanceof Element && target.closest('.jf-controls, .jf-context-menu')) return;
 
     if (this._options.readonly) return;
 
