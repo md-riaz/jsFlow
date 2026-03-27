@@ -95,12 +95,16 @@ export class InteractionManager {
     // Always dismiss context menu on any pointer down
     this._renderer.hideContextMenu();
 
+    // Ignore pointer starts from built-in UI controls so clicks/taps work
+    // consistently on both desktop and touch devices.
+    const target = e.target;
+    if (target instanceof Element && target.closest('.jf-controls, .jf-context-menu')) return;
+
     if (this._options.readonly) return;
 
     const rect    = this._container.getBoundingClientRect();
     const screenX = e.clientX - rect.left;
     const screenY = e.clientY - rect.top;
-    const target  = e.target;
 
     // Right-click → context menu (handled in contextmenu event)
     if (e.button === 2) return;
