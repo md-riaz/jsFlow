@@ -84,11 +84,11 @@ const SCENARIOS = {
       { id: 'holidayVm',   type: 'output',    x: 300, y: 420, width: 200, data: { label: 'Holiday Greeting',   icon: '🏝', description: 'Play message + voicemail' } },
       { id: 'hours',       type: 'condition', x: 560, y: 240, width: 200, data: { label: 'Business Hours',    icon: '⏰', description: 'Open/closed schedule' } },
       { id: 'afterHours',  type: 'output',    x: 560, y: 420, width: 200, data: { label: 'After-hours VM',     icon: '🌙', description: 'Route to voicemail box' } },
-      { id: 'ivr',         type: 'decision',  x: 760, y: 180, width: 520, data: { label: 'IVR Menu',           icon: '☎',  description: 'DTMF menu prompt' },
+      { id: 'ivr',         type: 'decision',  x: 760, y: 120, width: 420, height: 520, data: { label: 'IVR Menu',           icon: '☎',  description: 'DTMF menu prompt' },
         ports: [
-          { id: 'in', type: 'target', position: 'top', offset: 0.5 },
+          { id: 'in', type: 'target', position: 'left', offset: 0.5, label: 'Input' },
           ...['0','1','2','3','4','5','6','7','8','9'].map((d, i) => ({
-            id: `d${d}`, type: 'source', position: 'bottom', offset: 0.05 + i * 0.1, label: d,
+            id: `d${d}`, type: 'source', position: 'right', offset: 0.05 + i * 0.095, label: d,
           })),
         ],
       },
