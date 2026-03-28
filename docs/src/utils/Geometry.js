@@ -143,11 +143,15 @@ export function smoothStepPath(source, target, sourcePos = 'bottom', targetPos =
   }
 
   // horizontal flow
+  const dy = target.y - source.y;
+  const dir = Math.sign(dy);
+  const bend = Math.min(Math.abs(dy) / 2, r) * dir; // zero when perfectly aligned
+
   return (
     `M${source.x},${source.y}` +
     `L${midX - r},${source.y}` +
-    `Q${midX},${source.y} ${midX},${source.y > target.y ? source.y - r : source.y + r}` +
-    `L${midX},${target.y > source.y ? target.y - r : target.y + r}` +
+    `Q${midX},${source.y} ${midX},${source.y + bend}` +
+    `L${midX},${target.y - bend}` +
     `Q${midX},${target.y} ${midX + r},${target.y}` +
     `L${target.x},${target.y}`
   );

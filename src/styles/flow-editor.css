@@ -332,6 +332,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
   background: var(--jf-node-bg);
   border: 1px solid var(--jf-node-border);
   border-radius: 5px;
