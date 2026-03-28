@@ -139,9 +139,9 @@ const SCENARIOS = {
       { id: 'hours',       type: 'condition', x: 560, y: 240, width: 200, data: { label: 'Business Hours',    icon: '⏰', description: 'Open/closed schedule' } },
       { id: 'afterHours',  type: 'output',    x: 560, y: 420, width: 200, data: { label: 'After-hours VM',     icon: '🌙', description: 'Route to voicemail box' } },
       { id: 'ivr',         type: 'decision',  x: 760, y: 120, width: 420, height: 520, data: {
-          label: 'IVR Menu',
-          icon: '☎',
+          headerHtml: '<span class="jf-node__icon">☎</span><span class="jf-node__title">IVR Menu</span>',
           description: 'DTMF menu prompt',
+          footerHtml: '<span>Press 0 at any time for operator</span>',
           outputRows: {
             d0: 'Voicemail / timeout',
             d1: 'Sales ring group',
