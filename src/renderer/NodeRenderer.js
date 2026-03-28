@@ -166,7 +166,7 @@ export class NodeRenderer {
       handle.dataset.handlePosition = port.position;
       handle.dataset.nodeId         = node.id;
 
-      const pos = handlePosition(tempNode, port.position);
+      const pos = handlePosition(tempNode, port.position, port.offset);
       handle.style.left = `${pos.x}px`;
       handle.style.top  = `${pos.y}px`;
 
