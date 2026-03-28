@@ -33,7 +33,7 @@ export class CanvasRenderer {
     this._buildDOM();
 
     this.nodes   = new NodeRenderer(this._nodeLayer, store);
-    this.edges   = new EdgeRenderer(this._svg, store);
+    this.edges   = new EdgeRenderer(this._svg, store, this._edgeLabelLayer);
     this.minimap = options.minimap !== false
       ? new MiniMapRenderer(container, store, viewportEngine)
       : null;
@@ -73,6 +73,11 @@ export class CanvasRenderer {
     this._nodeLayer = document.createElement('div');
     this._nodeLayer.className = 'jf-node-layer';
     this._worldLayer.appendChild(this._nodeLayer);
+
+    // Edge label layer (world-space HTML overlay)
+    this._edgeLabelLayer = document.createElement('div');
+    this._edgeLabelLayer.className = 'jf-edge-label-layer';
+    this._worldLayer.appendChild(this._edgeLabelLayer);
 
     // Context menu overlay (screen-space)
     this._contextMenu = document.createElement('div');

@@ -22,12 +22,16 @@ export class EdgeRenderer {
   /**
    * @param {SVGSVGElement} svg
    * @param {import('../state/StateStore.js').StateStore} store
+   * @param {HTMLElement} [labelLayer]
    */
-  constructor(svg, store) {
+  constructor(svg, store, labelLayer) {
     this._svg = svg;
     this._store = store;
+    this._labelLayer = labelLayer ?? null;
     /** @type {Map<string, SVGGElement>} */
     this._els = new Map();
+    /** @type {Map<string, HTMLElement>} */
+    this._labelEls = new Map();
     /** @type {Map<string, EdgePathFn>} */
     this._registry = new Map();
     /** @type {SVGPathElement|null} */
@@ -130,6 +134,11 @@ export class EdgeRenderer {
     for (const [id, g] of this._els) {
       if (!seen.has(id)) {
         g.remove();
+        const labelEl = this._labelEls.get(id);
+        if (labelEl) {
+          labelEl.remove();
+          this._labelEls.delete(id);
+        }
         this._els.delete(id);
       }
     }
@@ -158,11 +167,6 @@ export class EdgeRenderer {
 
     g.appendChild(hitPath);
     g.appendChild(visPath);
-
-    // Optional label
-    const labelGroup = document.createElementNS(NS, 'g');
-    labelGroup.classList.add('jf-edge__label-group');
-    g.appendChild(labelGroup);
 
     this._edgeGroup.appendChild(g);
     this._els.set(edge.id, g);
@@ -212,23 +216,7 @@ export class EdgeRenderer {
       visPath.removeAttribute('marker-end');
     }
 
-    // Label — place at the midpoint of the path
-    const labelGroup = g.querySelector('.jf-edge__label-group');
-    labelGroup.innerHTML = '';
-    if (edge.label) {
-      const midX = (src.x + tgt.x) / 2;
-      const midY = (src.y + tgt.y) / 2;
-      const fo = document.createElementNS(NS, 'foreignObject');
-      fo.setAttribute('width', '140');
-      fo.setAttribute('height', '28');
-      fo.setAttribute('x', String(midX - 70));
-      fo.setAttribute('y', String(midY - 14));
-      const div = document.createElement('div');
-      div.className = 'jf-edge__label';
-      div.textContent = edge.label;
-      fo.appendChild(div);
-      labelGroup.appendChild(fo);
-    }
+    this._syncLabel(edge, src, tgt);
   }
 
   /**
@@ -293,10 +281,42 @@ export class EdgeRenderer {
     return g;
   }
 
+  /**
+   * Keep edge labels in a dedicated HTML layer so they always render above nodes.
+   * @param {EdgeModel} edge
+   * @param {{ x: number, y: number }} src
+   * @param {{ x: number, y: number }} tgt
+   */
+  _syncLabel(edge, src, tgt) {
+    if (!this._labelLayer) return;
+    const existing = this._labelEls.get(edge.id);
+    if (!edge.label) {
+      if (existing) {
+        existing.remove();
+        this._labelEls.delete(edge.id);
+      }
+      return;
+    }
+
+    const midX = (src.x + tgt.x) / 2;
+    const midY = (src.y + tgt.y) / 2;
+    const labelEl = existing ?? document.createElement('div');
+    if (!existing) {
+      labelEl.className = 'jf-edge__label jf-edge__label--floating';
+      this._labelLayer.appendChild(labelEl);
+      this._labelEls.set(edge.id, labelEl);
+    }
+    labelEl.textContent = edge.label;
+    labelEl.style.left = `${midX}px`;
+    labelEl.style.top = `${midY}px`;
+  }
+
   /** Destroy all edge SVG elements. */
   destroy() {
     this._edgeGroup.innerHTML = '';
     this._previewGroup.innerHTML = '';
+    for (const labelEl of this._labelEls.values()) labelEl.remove();
+    this._labelEls.clear();
     this._els.clear();
     this._previewPath = null;
   }
