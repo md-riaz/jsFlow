@@ -138,7 +138,17 @@ const SCENARIOS = {
       { id: 'holidayVm',   type: 'output',    x: 300, y: 420, width: 200, data: { label: 'Holiday Greeting',   icon: '🏝', description: 'Play message + voicemail' } },
       { id: 'hours',       type: 'condition', x: 560, y: 240, width: 200, data: { label: 'Business Hours',    icon: '⏰', description: 'Open/closed schedule' } },
       { id: 'afterHours',  type: 'output',    x: 560, y: 420, width: 200, data: { label: 'After-hours VM',     icon: '🌙', description: 'Route to voicemail box' } },
-      { id: 'ivr',         type: 'decision',  x: 760, y: 120, width: 420, height: 520, data: { label: 'IVR Menu',           icon: '☎',  description: 'DTMF menu prompt' },
+      { id: 'ivr',         type: 'decision',  x: 760, y: 120, width: 420, height: 520, data: {
+          label: 'IVR Menu',
+          icon: '☎',
+          description: 'DTMF menu prompt',
+          outputRows: {
+            d0: 'Voicemail / timeout',
+            d1: 'Sales ring group',
+            d2: 'Support queue',
+            d3: 'Dial extension',
+          },
+        },
         ports: createIvrDigitPorts(),
       },
       { id: 'sales',       type: 'action',    x: 1110,y: 80,  width: 200, data: { label: 'Sales Ring Group',   icon: '💼', description: 'Simultaneous ring (1)' } },
@@ -441,7 +451,6 @@ function initEditor(scenario = 'chatbot') {
     editor.registerNodeType('dbtable', renderDatabaseTable);
     editor.getNodes().forEach(node => editor.updateNode(node.id, { data: { ...node.data } }));
   }
-
   editor.on('selectionChange', ({ nodes, edges }) => {
     document.getElementById('statusSelected').textContent =
       `${nodes.length + edges.length} selected`;

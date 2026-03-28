@@ -143,6 +143,12 @@ export class NodeRenderer {
     const label = node.data.label ?? node.type;
     const icon  = node.data.icon  ?? '';
     const badge = node.data.badge ?? '';
+    const inputPorts = node.ports.filter(port => port.type === 'target');
+    const outputPorts = node.ports.filter(port => port.type === 'source');
+    const outputRows = node.data.outputRows && typeof node.data.outputRows === 'object'
+      ? node.data.outputRows
+      : {};
+    const hasRowOutputs = inputPorts.length === 1 && outputPorts.length > 1;
     body.innerHTML = `
       <div class="jf-node__header">
         ${icon ? `<span class="jf-node__icon">${icon}</span>` : ''}
@@ -150,6 +156,16 @@ export class NodeRenderer {
         ${badge ? `<span class="jf-node__badge">${badge}</span>` : ''}
       </div>
       ${node.data.description ? `<div class="jf-node__desc">${node.data.description}</div>` : ''}
+      ${hasRowOutputs ? `
+        <div class="jf-node__rows">
+          ${outputPorts.map(port => `
+            <div class="jf-node__row">
+              <span class="jf-node__row-key">${port.label ?? port.id}</span>
+              <span class="jf-node__row-value">${outputRows[port.id] ?? ''}</span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
     `;
   }
 
