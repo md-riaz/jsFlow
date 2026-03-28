@@ -114,20 +114,93 @@ const SCENARIOS = {
   },
   database: {
     nodes: [
-      { id: 'chatroom_message',     type: 'action', x: 80,  y: 80,  width: 340, data: { label: 'chatroom_message',     icon: '🗂', description: 'id, chatroom_id, sender, content, created' } },
-      { id: 'chatroom_participant', type: 'action', x: 120, y: 560, width: 360, data: { label: 'chatroom_participant', icon: '🗂', description: 'id, chatroom_id, party_id, created' } },
-      { id: 'internal_chatroom',    type: 'action', x: 680, y: 300, width: 360, data: { label: 'internal_chatroom',    icon: '🗂', description: 'id, name, is_group, organization_id, owner_id, created, updated' } },
-      { id: 'chatroom_audit',       type: 'action', x: 1340,y: 40,  width: 360, data: { label: 'chatroom_audit',       icon: '🗂', description: 'id, chatroom_id, message_id, audit_type_id, audit_action_id, organization_id, action_by, created' } },
-      { id: 'party',                type: 'action', x: 1280,y: 640, width: 300, data: { label: 'party',                icon: '🗂', description: 'id, name, parent, type, status, created, updated' } },
+      { id: 'chatroom_message', type: 'dbtable', x: 70,  y: 70,  width: 410, data: {
+        label: 'chatroom_message', accent: '#5a66c4',
+        columns: [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'chatroom_id', type: 'bigint' },
+          { name: 'sender', type: 'int' },
+          { name: 'content', type: 'text' },
+          { name: 'created', type: 'timestamp' },
+        ],
+      }, ports: [
+        { id: 'in', type: 'target', position: 'left', offset: 0.42 },
+        { id: 'toAuditMessage', type: 'source', position: 'right', offset: 0.42 },
+      ] },
+      { id: 'chatroom_participant', type: 'dbtable', x: 120, y: 600, width: 410, data: {
+        label: 'chatroom_participant', accent: '#2d84c8',
+        columns: [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'chatroom_id', type: 'bigint' },
+          { name: 'party_id', type: 'bigint' },
+          { name: 'created', type: 'timestamp' },
+        ],
+      }, ports: [
+        { id: 'fromChatroom', type: 'target', position: 'right', offset: 0.46 },
+        { id: 'fromParty', type: 'target', position: 'right', offset: 0.60 },
+      ] },
+      { id: 'internal_chatroom', type: 'dbtable', x: 650, y: 360, width: 430, data: {
+        label: 'internal_chatroom', accent: '#7f4ec9',
+        columns: [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'name', type: 'varchar?' },
+          { name: 'is_group', type: 'smallint' },
+          { name: 'organization_id', type: 'bigint' },
+          { name: 'owner_id', type: 'bigint', fk: true },
+          { name: 'created', type: 'timestamp' },
+          { name: 'updated', type: 'timestamp' },
+        ],
+      }, ports: [
+        { id: 'fromPartyOwner', type: 'target', position: 'right', offset: 0.62 },
+        { id: 'toMessage', type: 'source', position: 'left', offset: 0.46 },
+        { id: 'toAudit', type: 'source', position: 'right', offset: 0.62 },
+        { id: 'toParticipant', type: 'source', position: 'left', offset: 0.54 },
+      ] },
+      { id: 'chatroom_audit', type: 'dbtable', x: 1280, y: 20, width: 420, data: {
+        label: 'chatroom_audit', accent: '#1ca8bf',
+        columns: [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'chatroom_id', type: 'bigint' },
+          { name: 'message_id', type: 'bigint', fk: true },
+          { name: 'audit_type_id', type: 'bigint', fk: true },
+          { name: 'audit_action_id', type: 'bigint', fk: true },
+          { name: 'organization_id', type: 'bigint' },
+          { name: 'action_by', type: 'bigint', fk: true },
+          { name: 'created', type: 'timestamp' },
+        ],
+      }, ports: [
+        { id: 'fromMessage', type: 'target', position: 'left', offset: 0.44 },
+        { id: 'fromChatroom', type: 'target', position: 'left', offset: 0.60 },
+        { id: 'fromPartyOrg', type: 'target', position: 'left', offset: 0.76 },
+        { id: 'fromPartyAction', type: 'target', position: 'left', offset: 0.84 },
+      ] },
+      { id: 'party', type: 'dbtable', x: 1220, y: 690, width: 400, data: {
+        label: 'party', accent: '#d85b9a',
+        columns: [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'name', type: 'varchar?' },
+          { name: 'parent', type: 'int?' },
+          { name: 'type', type: 'int' },
+          { name: 'status', type: 'int' },
+          { name: 'created', type: 'timestamp' },
+          { name: 'updated', type: 'timestamp' },
+        ],
+      }, ports: [
+        { id: 'toOwner', type: 'source', position: 'left', offset: 0.62 },
+        { id: 'toParticipant', type: 'source', position: 'left', offset: 0.52 },
+        { id: 'toAuditOrg', type: 'source', position: 'left', offset: 0.78 },
+        { id: 'toAuditAction', type: 'source', position: 'left', offset: 0.86 },
+      ] },
     ],
     edges: [
-      { id: 'e1', source: 'chatroom_message',     sourceHandle: 'out', target: 'chatroom_audit',       targetHandle: 'in', label: 'message_id → id',      type: 'smoothstep' },
-      { id: 'e2', source: 'internal_chatroom',    sourceHandle: 'out', target: 'chatroom_message',     targetHandle: 'in', label: 'chatroom_id → id',     type: 'smoothstep' },
-      { id: 'e3', source: 'internal_chatroom',    sourceHandle: 'out', target: 'chatroom_participant', targetHandle: 'in', label: 'chatroom_id → id',     type: 'smoothstep' },
-      { id: 'e4', source: 'internal_chatroom',    sourceHandle: 'out', target: 'chatroom_audit',       targetHandle: 'in', label: 'chatroom_id → id',     type: 'bezier' },
-      { id: 'e5', source: 'party',                sourceHandle: 'out', target: 'internal_chatroom',    targetHandle: 'in', label: 'owner_id → id',        type: 'bezier' },
-      { id: 'e6', source: 'party',                sourceHandle: 'out', target: 'chatroom_participant', targetHandle: 'in', label: 'party_id → id',        type: 'smoothstep' },
-      { id: 'e7', source: 'party',                sourceHandle: 'out', target: 'chatroom_audit',       targetHandle: 'in', label: 'action_by/org_id → id',type: 'bezier' },
+      { id: 'e1', source: 'chatroom_message',  sourceHandle: 'toAuditMessage', target: 'chatroom_audit',       targetHandle: 'fromMessage',     type: 'smoothstep', markerEnd: false },
+      { id: 'e2', source: 'internal_chatroom', sourceHandle: 'toMessage',      target: 'chatroom_message',     targetHandle: 'in',              type: 'smoothstep', markerEnd: false },
+      { id: 'e3', source: 'internal_chatroom', sourceHandle: 'toParticipant',  target: 'chatroom_participant', targetHandle: 'fromChatroom',    type: 'smoothstep', markerEnd: false },
+      { id: 'e4', source: 'internal_chatroom', sourceHandle: 'toAudit',        target: 'chatroom_audit',       targetHandle: 'fromChatroom',    type: 'smoothstep', markerEnd: false },
+      { id: 'e5', source: 'party',             sourceHandle: 'toOwner',         target: 'internal_chatroom',    targetHandle: 'fromPartyOwner',  type: 'smoothstep', markerEnd: false },
+      { id: 'e6', source: 'party',             sourceHandle: 'toParticipant',   target: 'chatroom_participant', targetHandle: 'fromParty',       type: 'smoothstep', markerEnd: false },
+      { id: 'e7', source: 'party',             sourceHandle: 'toAuditOrg',      target: 'chatroom_audit',       targetHandle: 'fromPartyOrg',    type: 'smoothstep', markerEnd: false },
+      { id: 'e8', source: 'party',             sourceHandle: 'toAuditAction',   target: 'chatroom_audit',       targetHandle: 'fromPartyAction', type: 'smoothstep', markerEnd: false },
     ],
   },
   blank: { nodes: [], edges: [] },
@@ -299,22 +372,47 @@ let animatedMode = false;
 let readonlyMode = false;
 let activePropsTab = 'properties';
 
+function renderDatabaseTable(node, bodyEl) {
+  const accent = /^#[0-9a-f]{6}$/i.test(node.data.accent ?? '') ? node.data.accent : '#6f79c6';
+  const columns = Array.isArray(node.data.columns) ? node.data.columns : [];
+
+  bodyEl.innerHTML = `
+    <div class="db-table" style="--db-accent:${accent}">
+      <div class="db-table__header">${esc(node.data.label ?? node.id)}</div>
+      <div class="db-table__rows">
+        ${columns.map(col => `
+          <div class="db-table__row">
+            <span class="db-table__name">${col.pk ? '🗝 ' : col.fk ? '↳ ' : ''}${esc(col.name)}</span>
+            <span class="db-table__type">${esc(col.type)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
 // ── Init editor ───────────────────────────────────────────────────────────────
 
 function initEditor(scenario = 'chatbot') {
   const container = document.getElementById('flow-canvas');
   if (editor) { editor.destroy(); container.innerHTML = ''; }
+  container.classList.toggle('db-scenario', scenario === 'database');
 
   const data = SCENARIOS[scenario] ?? { nodes: [], edges: [] };
+  const isDatabaseScenario = scenario === 'database';
   editor = new FlowEditor({
     container,
     nodes:      data.nodes,
     edges:      data.edges,
     background: 'dots',
-    minimap:    true,
+    minimap:    !isDatabaseScenario,
     snapToGrid: snapEnabled,
     gridSize:   20,
   });
+
+  if (isDatabaseScenario) {
+    editor.registerNodeType('dbtable', renderDatabaseTable);
+    editor.getNodes().forEach(node => editor.updateNode(node.id, { data: { ...node.data } }));
+  }
 
   editor.on('selectionChange', ({ nodes, edges }) => {
     document.getElementById('statusSelected').textContent =
