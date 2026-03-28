@@ -227,7 +227,8 @@ export class NodeRenderer {
       for (const attr of [...el.attributes]) {
         const name = attr.name.toLowerCase();
         const value = attr.value.trim().toLowerCase();
-        if (name.startsWith('on') || value.startsWith('javascript:')) {
+        const hasUnsafeScheme = /^(javascript|data|vbscript):/.test(value);
+        if (name.startsWith('on') || hasUnsafeScheme) {
           el.removeAttribute(attr.name);
         }
       }
