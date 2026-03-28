@@ -561,6 +561,10 @@ export class InteractionManager {
   setSnapToGrid(val)  { this._options.snapToGrid  = val; }
   setGridSize(val)    { this._options.gridSize    = val; }
   setIsValidConnection(fn) { this._options.isValidConnection = fn; }
+  getReadonly()       { return this._options.readonly; }
+  getSnapToGrid()     { return this._options.snapToGrid; }
+  getGridSize()       { return this._options.gridSize; }
+  getIsValidConnection() { return this._options.isValidConnection; }
 
   // ── Destroy ───────────────────────────────────────────────────────────────
 

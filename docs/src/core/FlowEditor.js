@@ -198,10 +198,10 @@ export class FlowEditor {
   }
 
   setIsValidConnection(fn) { this._interactions.setIsValidConnection(fn); }
-  getReadonly()            { return this._interactions._options.readonly; }
-  getSnapToGrid()          { return this._interactions._options.snapToGrid; }
-  getGridSize()            { return this._interactions._options.gridSize; }
-  getIsValidConnection()   { return this._interactions._options.isValidConnection; }
+  getReadonly()            { return this._interactions.getReadonly(); }
+  getSnapToGrid()          { return this._interactions.getSnapToGrid(); }
+  getGridSize()            { return this._interactions.getGridSize(); }
+  getIsValidConnection()   { return this._interactions.getIsValidConnection(); }
 
   // ─── Custom renderers ─────────────────────────────────────────────────────
 
