@@ -140,6 +140,10 @@ export class FlowEditor {
 
   zoomIn()  { this._viewportEngine.zoomAt(0.2, this._container.clientWidth / 2, this._container.clientHeight / 2); }
   zoomOut() { this._viewportEngine.zoomAt(-0.2, this._container.clientWidth / 2, this._container.clientHeight / 2); }
+  setMinZoom(zoom) { this._viewportEngine.minZoom = zoom; }
+  setMaxZoom(zoom) { this._viewportEngine.maxZoom = zoom; }
+  getMinZoom()     { return this._viewportEngine.minZoom; }
+  getMaxZoom()     { return this._viewportEngine.maxZoom; }
 
   // ─── Selection ────────────────────────────────────────────────────────────
 
@@ -147,6 +151,7 @@ export class FlowEditor {
   clearSelection()                     { this._store.clearSelection(); }
   selectAll()                          { this._store.setSelection([...this._store.nodes.keys()], [...this._store.edges.keys()]); }
   getSelectedNodes()                   { return this._store.getSelectedNodes(); }
+  getSelectedEdges()                   { return this._store.getSelectedEdges(); }
 
   // ─── Undo / Redo ──────────────────────────────────────────────────────────
 
@@ -193,6 +198,10 @@ export class FlowEditor {
   }
 
   setIsValidConnection(fn) { this._interactions.setIsValidConnection(fn); }
+  getReadonly()            { return this._interactions._options.readonly; }
+  getSnapToGrid()          { return this._interactions._options.snapToGrid; }
+  getGridSize()            { return this._interactions._options.gridSize; }
+  getIsValidConnection()   { return this._interactions._options.isValidConnection; }
 
   // ─── Custom renderers ─────────────────────────────────────────────────────
 

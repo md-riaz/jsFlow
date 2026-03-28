@@ -283,4 +283,11 @@ export class StateStore extends EventEmitter {
       .map(id => this.nodes.get(id))
       .filter(Boolean);
   }
+
+  /** @returns {EdgeModel[]} */
+  getSelectedEdges() {
+    return [...this.selectedEdgeIds]
+      .map(id => this.edges.get(id))
+      .filter(Boolean);
+  }
 }

@@ -177,6 +177,10 @@ editor.getEdges()                  // → EdgeModel[]
 editor.fitView(padding?)           // fit all nodes into view
 editor.centerView()                // center without zoom change
 editor.zoomTo(zoomLevel)           // set exact zoom
+editor.setMinZoom(zoomLevel)       // update minimum zoom at runtime
+editor.setMaxZoom(zoomLevel)       // update maximum zoom at runtime
+editor.getMinZoom()                // → current minimum zoom
+editor.getMaxZoom()                // → current maximum zoom
 editor.setViewport({ x, y, zoom }) // set viewport state
 editor.getViewport()               // → { x, y, zoom }
 ```
@@ -187,6 +191,7 @@ editor.getViewport()               // → { x, y, zoom }
 editor.setSelection(nodeIds, edgeIds)  // replace selection
 editor.clearSelection()                // deselect all
 editor.getSelectedNodes()              // → NodeModel[]
+editor.getSelectedEdges()              // → EdgeModel[]
 ```
 
 ### History / Undo–Redo
@@ -209,6 +214,12 @@ editor.import(data)         // load from plain object
 ```js
 editor.setReadonly(true)    // disable all interactions
 editor.setReadonly(false)
+editor.getReadonly()        // → boolean
+editor.setSnapToGrid(true, 24)
+editor.getSnapToGrid()      // → boolean
+editor.getGridSize()        // → number
+editor.setIsValidConnection((ctx) => true)
+editor.getIsValidConnection() // → Function | undefined
 ```
 
 ### Coordinate Helpers
