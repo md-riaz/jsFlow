@@ -116,6 +116,18 @@ new FlowEditor({
   position: 'top' | 'bottom' | 'left' | 'right'
 }
 
+// data (optional defaults renderer fields)
+{
+  label?: string
+  icon?: string
+  badge?: string
+  description?: string
+  inputRows?: Record<string, string>   // keyed by target port id
+  outputRows?: Record<string, string>  // keyed by source port id
+  headerHtml?: string                  // sanitized HTML for custom header content
+  footerHtml?: string                  // sanitized HTML for custom footer content
+}
+
 // Defaults:
 // - input nodes:    one source on the right
 // - output nodes:   one target on the left
@@ -167,6 +179,16 @@ What it configures:
 - Evenly distributed right-side output handles from `outputs`
 - `data.outputRows` support for the default row-based node UI
 - Auto height sized for row-based layout (can still be overridden with `height`)
+
+### Default Node Sections (React Flow-style flexibility)
+
+The built-in node renderer supports a flexible sectioned layout similar to what teams commonly build with React Flow custom nodes:
+
+- **Header**: default icon/title/badge, or provide `data.headerHtml`
+- **Body rows**: `data.inputRows` / `data.outputRows` keyed by port id
+- **Footer**: optional `data.footerHtml`
+
+If `headerHtml` / `footerHtml` are provided, jsFlow applies basic sanitization (removes risky tags/attributes) before rendering.
 
 ---
 

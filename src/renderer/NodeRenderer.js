@@ -140,33 +140,100 @@ export class NodeRenderer {
   /** @param {NodeModel} node  @param {HTMLElement} body */
   _defaultContent(node, body) {
     body.innerHTML = '';
-    const label = node.data.label ?? node.type;
-    const icon  = node.data.icon  ?? '';
-    const badge = node.data.badge ?? '';
+    const label = this._escapeHTML(node.data.label ?? node.type);
+    const icon  = this._escapeHTML(node.data.icon  ?? '');
+    const badge = this._escapeHTML(node.data.badge ?? '');
+    const description = this._escapeHTML(node.data.description ?? '');
+    const footerHtml = typeof node.data.footerHtml === 'string'
+      ? this._sanitizeHTML(node.data.footerHtml)
+      : '';
+    const customHeaderHtml = typeof node.data.headerHtml === 'string'
+      ? this._sanitizeHTML(node.data.headerHtml)
+      : '';
     const inputPorts = node.ports.filter(port => port.type === 'target');
     const outputPorts = node.ports.filter(port => port.type === 'source');
+    const inputRows = node.data.inputRows && typeof node.data.inputRows === 'object'
+      ? node.data.inputRows
+      : {};
     const outputRows = node.data.outputRows && typeof node.data.outputRows === 'object'
       ? node.data.outputRows
       : {};
-    const hasRowOutputs = inputPorts.length === 1 && outputPorts.length > 1;
+    const hasLegacyRowOutputs = inputPorts.length === 1 && outputPorts.length > 1;
+    const hasInputRows = Object.keys(inputRows).length > 0;
+    const hasOutputRows = Object.keys(outputRows).length > 0;
+    const showInputRows = hasInputRows;
+    const showOutputRows = hasLegacyRowOutputs || hasOutputRows;
+    const inputRowsMarkup = showInputRows
+      ? inputPorts.map(port => `
+          <div class="jf-node__row jf-node__row--input">
+            <span class="jf-node__row-key">${this._escapeHTML(port.label ?? port.id)}</span>
+            <span class="jf-node__row-value">${this._escapeHTML(inputRows[port.id] ?? '')}</span>
+          </div>
+        `).join('')
+      : '';
+    const outputRowsMarkup = showOutputRows
+      ? outputPorts.map(port => `
+          <div class="jf-node__row jf-node__row--output">
+            <span class="jf-node__row-key">${this._escapeHTML(port.label ?? port.id)}</span>
+            <span class="jf-node__row-value">${this._escapeHTML(outputRows[port.id] ?? '')}</span>
+          </div>
+        `).join('')
+      : '';
+
     body.innerHTML = `
-      <div class="jf-node__header">
+      <div class="jf-node__header">${customHeaderHtml || `
         ${icon ? `<span class="jf-node__icon">${icon}</span>` : ''}
         <span class="jf-node__title">${label}</span>
         ${badge ? `<span class="jf-node__badge">${badge}</span>` : ''}
-      </div>
-      ${node.data.description ? `<div class="jf-node__desc">${node.data.description}</div>` : ''}
-      ${hasRowOutputs ? `
+      `}</div>
+      ${description ? `<div class="jf-node__desc">${description}</div>` : ''}
+      ${(showInputRows || showOutputRows) ? `
         <div class="jf-node__rows">
-          ${outputPorts.map(port => `
-            <div class="jf-node__row">
-              <span class="jf-node__row-key">${port.label ?? port.id}</span>
-              <span class="jf-node__row-value">${outputRows[port.id] ?? ''}</span>
-            </div>
-          `).join('')}
+          ${inputRowsMarkup}
+          ${outputRowsMarkup}
         </div>
       ` : ''}
+      ${footerHtml ? `<div class="jf-node__desc jf-node__footer">${footerHtml}</div>` : ''}
     `;
+  }
+
+  /**
+   * @param {unknown} value
+   * @returns {string}
+   */
+  _escapeHTML(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Minimal sanitization for optional node HTML sections.
+   * @param {string} html
+   * @returns {string}
+   */
+  _sanitizeHTML(html) {
+    const template = document.createElement('template');
+    template.innerHTML = html;
+    const blockedTags = new Set(['script', 'style', 'iframe', 'object', 'embed', 'link', 'meta']);
+    for (const el of template.content.querySelectorAll('*')) {
+      if (blockedTags.has(el.tagName.toLowerCase())) {
+        el.remove();
+        continue;
+      }
+      for (const attr of [...el.attributes]) {
+        const name = attr.name.toLowerCase();
+        const value = attr.value.trim().toLowerCase();
+        const hasUnsafeScheme = /^(javascript|data|vbscript):/.test(value);
+        if (name.startsWith('on') || hasUnsafeScheme) {
+          el.removeAttribute(attr.name);
+        }
+      }
+    }
+    return template.innerHTML;
   }
 
   /** @param {NodeModel} node  @param {HTMLElement} el */
