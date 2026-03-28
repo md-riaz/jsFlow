@@ -22,7 +22,7 @@ export { exportGraph, importGraph, toJSON, fromJSON } from './utils/Serializer.j
 export { bezierPath, smoothStepPath, screenToWorld, worldToScreen, uid } from './utils/Geometry.js';
 
 // Models
-export { createNode, defaultPorts } from './models/Node.js';
+export { createNode, defaultPorts, createMultiOutputNode } from './models/Node.js';
 export { createEdge }               from './models/Edge.js';
 
 // Core sub-systems (for advanced usage / custom integrations)

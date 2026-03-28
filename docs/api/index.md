@@ -131,6 +131,45 @@ new FlowEditor({
 
 ---
 
+### Helper: `createMultiOutputNode()`
+
+For decision / router nodes (single input + multiple outputs), use the helper instead of manually calculating ports:
+
+```js
+import { createMultiOutputNode } from './src/index.js';
+
+const router = createMultiOutputNode({
+  type: 'decision',
+  x: 320,
+  y: 140,
+  data: {
+    label: 'Route Intent',
+    description: 'Branch by intent type',
+    outputRows: {
+      faq: 'Knowledge base',
+      agent: 'Escalate to human',
+      fallback: 'Default response',
+    },
+  },
+  outputs: [
+    { id: 'faq', label: 'FAQ' },
+    { id: 'agent', label: 'Agent' },
+    { id: 'fallback', label: 'Other' },
+  ],
+});
+
+editor.addNode(router);
+```
+
+What it configures:
+
+- One left-side input handle: `in`
+- Evenly distributed right-side output handles from `outputs`
+- `data.outputRows` support for the default row-based node UI
+- Auto height sized for row-based layout (can still be overridden with `height`)
+
+---
+
 ## Edge Model
 
 ```ts
