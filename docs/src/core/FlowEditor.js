@@ -112,9 +112,11 @@ export class FlowEditor {
   clearGraph() {
     if (!this._store.nodes.size && !this._store.edges.size) return;
     const snap = this._store.snapshot();
-    const ids = [...this._store.nodes.keys()];
+    const edgeIds = [...this._store.edges.keys()];
+    const nodeIds = [...this._store.nodes.keys()];
     this._history.suspend(() => {
-      for (const id of ids) this._store.removeNode(id);
+      for (const id of edgeIds) this._store.removeEdge(id);
+      for (const id of nodeIds) this._store.removeNode(id);
     });
     this._history.push('Clear graph', snap);
   }
@@ -138,8 +140,14 @@ export class FlowEditor {
 
   getEdge(id)  { return this._store.edges.get(id); }
   getEdges()   { return this._store.getEdges(); }
-  updateEdges(changes, edgeIds = [...this._store.edges.keys()]) {
-    for (const id of edgeIds) this._store.updateEdge(id, changes);
+  updateEdges(changes, edgeIds) {
+    const ids = edgeIds ?? [...this._store.edges.keys()];
+    if (!ids.length) return;
+    const snap = this._store.snapshot();
+    this._history.suspend(() => {
+      for (const id of ids) this._store.updateEdge(id, changes);
+    });
+    this._history.push(`Update ${ids.length} edge(s)`, snap);
   }
 
   // ─── Viewport ─────────────────────────────────────────────────────────────
