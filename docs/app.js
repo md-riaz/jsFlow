@@ -193,14 +193,14 @@ const SCENARIOS = {
       ] },
     ],
     edges: [
-      { id: 'e1', source: 'chatroom_message',  sourceHandle: 'toAuditMessage', target: 'chatroom_audit',       targetHandle: 'fromMessage',     type: 'smoothstep', markerEnd: false },
-      { id: 'e2', source: 'internal_chatroom', sourceHandle: 'toMessage',      target: 'chatroom_message',     targetHandle: 'in',              type: 'smoothstep', markerEnd: false },
-      { id: 'e3', source: 'internal_chatroom', sourceHandle: 'toParticipant',  target: 'chatroom_participant', targetHandle: 'fromChatroom',    type: 'smoothstep', markerEnd: false },
-      { id: 'e4', source: 'internal_chatroom', sourceHandle: 'toAudit',        target: 'chatroom_audit',       targetHandle: 'fromChatroom',    type: 'smoothstep', markerEnd: false },
-      { id: 'e5', source: 'party',             sourceHandle: 'toOwner',         target: 'internal_chatroom',    targetHandle: 'fromPartyOwner',  type: 'smoothstep', markerEnd: false },
-      { id: 'e6', source: 'party',             sourceHandle: 'toParticipant',   target: 'chatroom_participant', targetHandle: 'fromParty',       type: 'smoothstep', markerEnd: false },
-      { id: 'e7', source: 'party',             sourceHandle: 'toAuditOrg',      target: 'chatroom_audit',       targetHandle: 'fromPartyOrg',    type: 'smoothstep', markerEnd: false },
-      { id: 'e8', source: 'party',             sourceHandle: 'toAuditAction',   target: 'chatroom_audit',       targetHandle: 'fromPartyAction', type: 'smoothstep', markerEnd: false },
+      { id: 'e1', source: 'chatroom_message',  sourceHandle: 'toAuditMessage', target: 'chatroom_audit',       targetHandle: 'fromMessage',     ...DB_EDGE_STYLE },
+      { id: 'e2', source: 'internal_chatroom', sourceHandle: 'toMessage',      target: 'chatroom_message',     targetHandle: 'in',              ...DB_EDGE_STYLE },
+      { id: 'e3', source: 'internal_chatroom', sourceHandle: 'toParticipant',  target: 'chatroom_participant', targetHandle: 'fromChatroom',    ...DB_EDGE_STYLE },
+      { id: 'e4', source: 'internal_chatroom', sourceHandle: 'toAudit',        target: 'chatroom_audit',       targetHandle: 'fromChatroom',    ...DB_EDGE_STYLE },
+      { id: 'e5', source: 'party',             sourceHandle: 'toOwner',         target: 'internal_chatroom',    targetHandle: 'fromPartyOwner',  ...DB_EDGE_STYLE },
+      { id: 'e6', source: 'party',             sourceHandle: 'toParticipant',   target: 'chatroom_participant', targetHandle: 'fromParty',       ...DB_EDGE_STYLE },
+      { id: 'e7', source: 'party',             sourceHandle: 'toAuditOrg',      target: 'chatroom_audit',       targetHandle: 'fromPartyOrg',    ...DB_EDGE_STYLE },
+      { id: 'e8', source: 'party',             sourceHandle: 'toAuditAction',   target: 'chatroom_audit',       targetHandle: 'fromPartyAction', ...DB_EDGE_STYLE },
     ],
   },
   blank: { nodes: [], edges: [] },
@@ -371,6 +371,7 @@ let snapEnabled = false;
 let animatedMode = false;
 let readonlyMode = false;
 let activePropsTab = 'properties';
+const DB_EDGE_STYLE = { type: 'smoothstep', markerEnd: false };
 
 function renderDatabaseTable(node, bodyEl) {
   const accent = /^#[0-9a-f]{6}$/i.test(node.data.accent ?? '') ? node.data.accent : '#6f79c6';
