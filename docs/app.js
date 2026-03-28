@@ -59,6 +59,20 @@ function createIvrDigitPorts() {
   ];
 }
 
+function createRoutePorts(outputIds = []) {
+  const total = Math.max(outputIds.length, 1);
+  return [
+    { id: 'in', type: 'target', position: 'left', offset: 0.5, label: '' },
+    ...outputIds.map((id, index) => ({
+      id,
+      type: 'source',
+      position: 'right',
+      offset: total === 1 ? 0.5 : (index + 1) / (total + 1),
+      label: '',
+    })),
+  ];
+}
+
 const DB_EDGE_STYLE = { type: 'smoothstep', markerEnd: false };
 
 const SCENARIOS = {
@@ -133,42 +147,39 @@ const SCENARIOS = {
   },
   callcenter: {
     nodes: [
-      { id: 'inbound',     type: 'input',     x: 40,  y: 240, width: 200, data: { label: 'Incoming Call',     icon: '📞', description: 'SIP / PSTN trigger' } },
-      { id: 'holiday',     type: 'condition', x: 300, y: 240, width: 200, data: { label: 'Check Holidays',    icon: '🎄', description: 'Calendar lookup' } },
-      { id: 'holidayVm',   type: 'output',    x: 300, y: 420, width: 200, data: { label: 'Holiday Greeting',   icon: '🏝', description: 'Play message + voicemail' } },
-      { id: 'hours',       type: 'condition', x: 560, y: 240, width: 200, data: { label: 'Business Hours',    icon: '⏰', description: 'Open/closed schedule' } },
-      { id: 'afterHours',  type: 'output',    x: 560, y: 420, width: 200, data: { label: 'After-hours VM',     icon: '🌙', description: 'Route to voicemail box' } },
-      { id: 'ivr',         type: 'decision',  x: 760, y: 120, width: 420, height: 520, data: {
-          headerHtml: '<span class="jf-node__icon">☎</span><span class="jf-node__title">IVR Menu</span>',
-          description: 'DTMF menu prompt',
-          footerHtml: '<span>Press 0 at any time for operator</span>',
-          outputRows: {
-            d0: 'Voicemail / timeout',
-            d1: 'Sales ring group',
-            d2: 'Support queue',
-            d3: 'Dial extension',
-          },
-        },
-        ports: createIvrDigitPorts(),
-      },
-      { id: 'sales',       type: 'action',    x: 1110,y: 80,  width: 200, data: { label: 'Sales Ring Group',   icon: '💼', description: 'Simultaneous ring (1)' } },
-      { id: 'support',     type: 'action',    x: 1110,y: 200, width: 200, data: { label: 'Support Queue',      icon: '🛠', description: 'Ring group / queue (2)' } },
-      { id: 'extension',   type: 'action',    x: 1110,y: 320, width: 200, data: { label: 'Dial Extension',     icon: '🔢', description: 'Direct extension (3)' } },
-      { id: 'voicemail',   type: 'action',    x: 1110,y: 440, width: 200, data: { label: 'Voicemail Mailbox',  icon: '📥', description: '0 / timeout to VM' } },
-      { id: 'operator',    type: 'output',    x: 1350,y: 200, width: 200, data: { label: 'Operator / Main',    icon: '👤', description: 'Fallback operator' } },
+      { id: 'inbound',    type: 'input',     x: 30,  y: 90,  width: 220, height: 58, data: { label: 'Incoming Call', icon: '📞', description: '+9613829090' } },
+      { id: 'holiday',    type: 'condition', x: 270, y: 160, width: 290, height: 116, data: {
+          label: 'Holiday Schedule',
+          icon: '🗓️',
+          outputRows: { open: 'Outside Holidays Route', holiday: 'Default Holidays Route', other: 'Other holidays (11)' },
+        }, ports: createRoutePorts(['open', 'holiday', 'other']) },
+      { id: 'holidayMsg', type: 'action',    x: 720, y: 385, width: 290, height: 64, data: { label: 'Holiday message', icon: '🎙️', description: 'Holiday common message (TTS)' } },
+      { id: 'hours',      type: 'condition', x: 780, y: 110, width: 260, height: 116, data: {
+          label: 'Business Hours Gate',
+          icon: '🕒',
+          description: 'Day Shift',
+          outputRows: { open: 'Open Hours', break: 'Break hours', closed: 'Closed Hours' },
+        }, ports: createRoutePorts(['open', 'break', 'closed']) },
+      { id: 'ivr',        type: 'decision',  x: 1180, y: 38, width: 270, height: 106, data: {
+          label: 'Main IVR',
+          icon: '☰',
+          description: 'Main IVR (515)',
+          outputRows: { live: 'Key 0 (live agents)', ring: 'Key 1 (ring group)', timeout: 'Timeout' },
+        }, ports: createRoutePorts(['live', 'ring', 'timeout']) },
+      { id: 'audioBreak', type: 'action',    x: 1270, y: 250, width: 290, height: 64, data: { label: 'Audio Message', icon: '🎙️', description: 'Short break message (TTS)' } },
+      { id: 'audioClose', type: 'action',    x: 1200, y: 390, width: 290, height: 64, data: { label: 'Audio Message', icon: '🎙️', description: 'Closed hours message (TTS)' } },
+      { id: 'queue',      type: 'output',    x: 1650, y: 60,  width: 240, height: 62, data: { label: 'Call Center Queue', icon: '🎧', description: 'Support (4321)' } },
+      { id: 'ring',       type: 'output',    x: 1630, y: 210, width: 260, height: 92, data: { label: 'Ring Group', icon: '👥', outputRows: { noAnswer: 'No answer' } }, ports: createRoutePorts(['noAnswer']) },
     ],
     edges: [
-      { id: 'e1',  source: 'inbound',   sourceHandle: 'out', target: 'holiday',    targetHandle: 'in', type: 'smoothstep', animated: true },
-      { id: 'e2',  source: 'holiday',   sourceHandle: 'out', target: 'hours',      targetHandle: 'in', label: 'not holiday', type: 'smoothstep' },
-      { id: 'e3',  source: 'holiday',   sourceHandle: 'out', target: 'holidayVm',  targetHandle: 'in', label: 'holiday', type: 'bezier' },
-      { id: 'e4',  source: 'hours',     sourceHandle: 'out', target: 'ivr',        targetHandle: 'in', label: 'open', type: 'smoothstep' },
-      { id: 'e5',  source: 'hours',     sourceHandle: 'out', target: 'afterHours', targetHandle: 'in', label: 'closed', type: 'bezier' },
-      { id: 'e6',  source: 'ivr',       sourceHandle: 'd1',  target: 'sales',      targetHandle: 'in', label: 'press 1', type: 'bezier' },
-      { id: 'e7',  source: 'ivr',       sourceHandle: 'd2',  target: 'support',    targetHandle: 'in', label: 'press 2', type: 'bezier' },
-      { id: 'e8',  source: 'ivr',       sourceHandle: 'd3',  target: 'extension',  targetHandle: 'in', label: 'press 3', type: 'bezier' },
-      { id: 'e9',  source: 'ivr',       sourceHandle: 'd0',  target: 'voicemail',  targetHandle: 'in', label: 'press 0 / timeout', type: 'bezier' },
-      { id: 'e10', source: 'support',   sourceHandle: 'out', target: 'operator',   targetHandle: 'in', label: 'fallback', type: 'smoothstep' },
-      { id: 'e11', source: 'voicemail', sourceHandle: 'out', target: 'operator',   targetHandle: 'in', label: 'operator key', type: 'smoothstep' },
+      { id: 'e1', source: 'inbound', sourceHandle: 'out',     target: 'holiday',    targetHandle: 'in', type: 'smoothstep', markerEnd: false, markerColor: '#b7bdca' },
+      { id: 'e2', source: 'holiday', sourceHandle: 'open',    target: 'hours',      targetHandle: 'in', type: 'smoothstep', markerEnd: false, markerColor: '#43c89c' },
+      { id: 'e3', source: 'holiday', sourceHandle: 'holiday', target: 'holidayMsg', targetHandle: 'in', type: 'bezier',     markerEnd: false, markerColor: '#d96f85' },
+      { id: 'e4', source: 'hours',   sourceHandle: 'open',    target: 'ivr',        targetHandle: 'in', type: 'smoothstep', markerEnd: false, markerColor: '#4acaa8' },
+      { id: 'e5', source: 'hours',   sourceHandle: 'break',   target: 'audioBreak', targetHandle: 'in', type: 'smoothstep', markerEnd: false, markerColor: '#d2a042' },
+      { id: 'e6', source: 'hours',   sourceHandle: 'closed',  target: 'audioClose', targetHandle: 'in', type: 'bezier',     markerEnd: false, markerColor: '#d87b90' },
+      { id: 'e7', source: 'ivr',     sourceHandle: 'live',    target: 'queue',      targetHandle: 'in', type: 'smoothstep', markerEnd: false, markerColor: '#48c5a7' },
+      { id: 'e8', source: 'ivr',     sourceHandle: 'ring',    target: 'ring',       targetHandle: 'in', type: 'smoothstep', markerEnd: false, markerColor: '#4dbb9f' },
     ],
   },
   database: {
@@ -464,6 +475,7 @@ function initEditor(scenario = 'chatbot') {
   const container = document.getElementById('flow-canvas');
   if (editor) { editor.destroy(); container.innerHTML = ''; }
   container.classList.toggle('db-scenario', scenario === 'database');
+  container.classList.toggle('callcenter-scenario', scenario === 'callcenter');
 
   const data = SCENARIOS[scenario] ?? { nodes: [], edges: [] };
   const isDatabaseScenario = scenario === 'database';
