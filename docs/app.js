@@ -59,6 +59,11 @@ function createIvrDigitPorts() {
   ];
 }
 
+/**
+ * Render IVR menu node body with one visible row per DTMF digit output.
+ * @param {import('./src/models/Node.js').NodeModel} node
+ * @param {HTMLElement} bodyEl
+ */
 function renderIvrMenu(node, bodyEl) {
   const title = esc(node.data.label ?? node.id);
   const description = node.data.description ? esc(node.data.description) : '';
@@ -66,7 +71,7 @@ function renderIvrMenu(node, bodyEl) {
     ? node.data.dtmfRoutes
     : {};
   const digitPorts = [...node.ports]
-    .filter(port => port.type === 'source' && /^d\d$/.test(port.id))
+    .filter(port => port.type === 'source' && /^d\d+$/.test(port.id))
     .sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)));
 
   bodyEl.innerHTML = `
@@ -167,10 +172,10 @@ const SCENARIOS = {
           icon: '☎',
           description: 'DTMF menu prompt',
           dtmfRoutes: {
+            d0: 'Voicemail / timeout',
             d1: 'Sales ring group',
             d2: 'Support queue',
             d3: 'Dial extension',
-            d0: 'Voicemail / timeout',
           },
         },
         ports: createIvrDigitPorts(),
