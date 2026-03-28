@@ -7,6 +7,60 @@ import { FlowEditor } from './src/core/FlowEditor.js';
 
 // ── Scenario data ────────────────────────────────────────────────────────────
 
+const DB_TABLE_LAYOUT = {
+  headerHeight: 47,
+  rowsPaddingTop: 10,
+  rowHeight: 21,
+};
+
+function createDbPorts(columns = []) {
+  const rowCount = Math.max(columns.length, 1);
+  const totalHeight =
+    DB_TABLE_LAYOUT.headerHeight +
+    DB_TABLE_LAYOUT.rowsPaddingTop +
+    DB_TABLE_LAYOUT.rowHeight * rowCount;
+
+  return columns.flatMap((col, index) => {
+    const rowCenterY =
+      DB_TABLE_LAYOUT.headerHeight +
+      DB_TABLE_LAYOUT.rowsPaddingTop +
+      DB_TABLE_LAYOUT.rowHeight * index +
+      DB_TABLE_LAYOUT.rowHeight / 2;
+    const offset = Math.max(0, Math.min(1, rowCenterY / totalHeight));
+    return [
+      { id: `in:${col.name}`, type: 'target', position: 'left', offset },
+      { id: `out:${col.name}`, type: 'source', position: 'right', offset },
+    ];
+  });
+}
+
+function createDbNode({ id, x, y, width, label, accent, columns }) {
+  return {
+    id,
+    type: 'dbtable',
+    x,
+    y,
+    width,
+    data: { label, accent, columns },
+    ports: createDbPorts(columns),
+  };
+}
+
+function createIvrDigitPorts() {
+  return [
+    { id: 'in', type: 'target', position: 'left', offset: 0.5, label: 'Input' },
+    ...['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit, index) => ({
+      id: `d${digit}`,
+      type: 'source',
+      position: 'right',
+      offset: 0.05 + index * 0.095,
+      label: digit,
+    })),
+  ];
+}
+
+const DB_EDGE_STYLE = { type: 'smoothstep', markerEnd: false };
+
 const SCENARIOS = {
   chatbot: {
     nodes: [
@@ -85,12 +139,7 @@ const SCENARIOS = {
       { id: 'hours',       type: 'condition', x: 560, y: 240, width: 200, data: { label: 'Business Hours',    icon: '⏰', description: 'Open/closed schedule' } },
       { id: 'afterHours',  type: 'output',    x: 560, y: 420, width: 200, data: { label: 'After-hours VM',     icon: '🌙', description: 'Route to voicemail box' } },
       { id: 'ivr',         type: 'decision',  x: 760, y: 120, width: 420, height: 520, data: { label: 'IVR Menu',           icon: '☎',  description: 'DTMF menu prompt' },
-        ports: [
-          { id: 'in', type: 'target', position: 'left', offset: 0.5, label: 'Input' },
-          ...['0','1','2','3','4','5','6','7','8','9'].map((d, i) => ({
-            id: `d${d}`, type: 'source', position: 'right', offset: 0.05 + i * 0.095, label: d,
-          })),
-        ],
+        ports: createIvrDigitPorts(),
       },
       { id: 'sales',       type: 'action',    x: 1110,y: 80,  width: 200, data: { label: 'Sales Ring Group',   icon: '💼', description: 'Simultaneous ring (1)' } },
       { id: 'support',     type: 'action',    x: 1110,y: 200, width: 200, data: { label: 'Support Queue',      icon: '🛠', description: 'Ring group / queue (2)' } },
@@ -110,6 +159,76 @@ const SCENARIOS = {
       { id: 'e9',  source: 'ivr',       sourceHandle: 'd0',  target: 'voicemail',  targetHandle: 'in', label: 'press 0 / timeout', type: 'bezier' },
       { id: 'e10', source: 'support',   sourceHandle: 'out', target: 'operator',   targetHandle: 'in', label: 'fallback', type: 'smoothstep' },
       { id: 'e11', source: 'voicemail', sourceHandle: 'out', target: 'operator',   targetHandle: 'in', label: 'operator key', type: 'smoothstep' },
+    ],
+  },
+  database: {
+    nodes: [
+      createDbNode({ id: 'chatroom_message', x: 70, y: 70, width: 410,
+        label: 'chatroom_message', accent: '#5a66c4',
+        columns: [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'chatroom_id', type: 'bigint' },
+          { name: 'sender', type: 'int' },
+          { name: 'content', type: 'text' },
+          { name: 'created', type: 'timestamp' },
+        ],
+      }),
+      createDbNode({ id: 'chatroom_participant', x: 120, y: 600, width: 410,
+        label: 'chatroom_participant', accent: '#2d84c8',
+        columns: [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'chatroom_id', type: 'bigint' },
+          { name: 'party_id', type: 'bigint' },
+          { name: 'created', type: 'timestamp' },
+        ],
+      }),
+      createDbNode({ id: 'internal_chatroom', x: 650, y: 360, width: 430,
+        label: 'internal_chatroom', accent: '#7f4ec9',
+        columns: [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'name', type: 'varchar?' },
+          { name: 'is_group', type: 'smallint' },
+          { name: 'organization_id', type: 'bigint' },
+          { name: 'owner_id', type: 'bigint', fk: true },
+          { name: 'created', type: 'timestamp' },
+          { name: 'updated', type: 'timestamp' },
+        ],
+      }),
+      createDbNode({ id: 'chatroom_audit', x: 1280, y: 20, width: 420,
+        label: 'chatroom_audit', accent: '#1ca8bf',
+        columns: [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'chatroom_id', type: 'bigint' },
+          { name: 'message_id', type: 'bigint', fk: true },
+          { name: 'audit_type_id', type: 'bigint', fk: true },
+          { name: 'audit_action_id', type: 'bigint', fk: true },
+          { name: 'organization_id', type: 'bigint' },
+          { name: 'action_by', type: 'bigint', fk: true },
+          { name: 'created', type: 'timestamp' },
+        ],
+      }),
+      createDbNode({ id: 'party', x: 1220, y: 690, width: 400,
+        label: 'party', accent: '#d85b9a',
+        columns: [
+          { name: 'id', type: 'serial', pk: true },
+          { name: 'name', type: 'varchar?' },
+          { name: 'parent', type: 'int?' },
+          { name: 'type', type: 'int' },
+          { name: 'status', type: 'int' },
+          { name: 'created', type: 'timestamp' },
+          { name: 'updated', type: 'timestamp' },
+        ],
+      }),
+    ],
+    edges: [
+      { id: 'e1', source: 'chatroom_message',  sourceHandle: 'out:id', target: 'chatroom_audit',       targetHandle: 'in:message_id',       ...DB_EDGE_STYLE },
+      { id: 'e2', source: 'internal_chatroom', sourceHandle: 'out:id', target: 'chatroom_message',     targetHandle: 'in:chatroom_id',      ...DB_EDGE_STYLE },
+      { id: 'e3', source: 'internal_chatroom', sourceHandle: 'out:id', target: 'chatroom_participant', targetHandle: 'in:chatroom_id',      ...DB_EDGE_STYLE },
+      { id: 'e4', source: 'internal_chatroom', sourceHandle: 'out:id', target: 'chatroom_audit',       targetHandle: 'in:chatroom_id',      ...DB_EDGE_STYLE },
+      { id: 'e5', source: 'party',             sourceHandle: 'out:id', target: 'internal_chatroom',    targetHandle: 'in:owner_id',         ...DB_EDGE_STYLE },
+      { id: 'e6', source: 'party',             sourceHandle: 'out:id', target: 'chatroom_participant', targetHandle: 'in:party_id',         ...DB_EDGE_STYLE },
+      { id: 'e7', source: 'party',             sourceHandle: 'out:id', target: 'chatroom_audit',       targetHandle: 'in:organization_id', ...DB_EDGE_STYLE },
+      { id: 'e8', source: 'party',             sourceHandle: 'out:id', target: 'chatroom_audit',       targetHandle: 'in:action_by',        ...DB_EDGE_STYLE },
     ],
   },
   blank: { nodes: [], edges: [] },
@@ -281,22 +400,47 @@ let animatedMode = false;
 let readonlyMode = false;
 let activePropsTab = 'properties';
 
+function renderDatabaseTable(node, bodyEl) {
+  const accent = /^#[0-9a-f]{6}$/i.test(node.data.accent ?? '') ? node.data.accent : '#6f79c6';
+  const columns = Array.isArray(node.data.columns) ? node.data.columns : [];
+
+  bodyEl.innerHTML = `
+    <div class="db-table" style="--db-accent:${accent}">
+      <div class="db-table__header">${esc(node.data.label ?? node.id)}</div>
+      <div class="db-table__rows">
+        ${columns.map(col => `
+          <div class="db-table__row">
+            <span class="db-table__name">${col.pk ? '🗝 ' : col.fk ? '↳ ' : ''}${esc(col.name)}</span>
+            <span class="db-table__type">${esc(col.type)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
 // ── Init editor ───────────────────────────────────────────────────────────────
 
 function initEditor(scenario = 'chatbot') {
   const container = document.getElementById('flow-canvas');
   if (editor) { editor.destroy(); container.innerHTML = ''; }
+  container.classList.toggle('db-scenario', scenario === 'database');
 
   const data = SCENARIOS[scenario] ?? { nodes: [], edges: [] };
+  const isDatabaseScenario = scenario === 'database';
   editor = new FlowEditor({
     container,
     nodes:      data.nodes,
     edges:      data.edges,
     background: 'dots',
-    minimap:    true,
+    minimap:    !isDatabaseScenario,
     snapToGrid: snapEnabled,
     gridSize:   20,
   });
+
+  if (isDatabaseScenario) {
+    editor.registerNodeType('dbtable', renderDatabaseTable);
+    editor.getNodes().forEach(node => editor.updateNode(node.id, { data: { ...node.data } }));
+  }
 
   editor.on('selectionChange', ({ nodes, edges }) => {
     document.getElementById('statusSelected').textContent =
@@ -485,7 +629,16 @@ canvasWrap.addEventListener('drop', e => {
   const item  = JSON.parse(raw);
   const rect  = document.getElementById('flow-canvas').getBoundingClientRect();
   const world = editor.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
-  editor.addNode({ type: item.type, x: world.x - 90, y: world.y - 30, width: 180, data: { label: item.label, icon: item.icon, description: item.desc } });
+  const isIvrMenu = item.label === 'IVR Menu';
+  editor.addNode({
+    type: isIvrMenu ? 'decision' : item.type,
+    x: world.x - 90,
+    y: world.y - 30,
+    width: isIvrMenu ? 280 : 180,
+    height: isIvrMenu ? 360 : undefined,
+    data: { label: item.label, icon: item.icon, description: item.desc },
+    ports: isIvrMenu ? createIvrDigitPorts() : undefined,
+  });
 });
 
 // ── Drag indicator ────────────────────────────────────────────────────────────
