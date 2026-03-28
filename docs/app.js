@@ -112,6 +112,24 @@ const SCENARIOS = {
       { id: 'e11', source: 'voicemail', sourceHandle: 'out', target: 'operator',   targetHandle: 'in', label: 'operator key', type: 'smoothstep' },
     ],
   },
+  database: {
+    nodes: [
+      { id: 'chatroom_message',     type: 'action', x: 80,  y: 80,  width: 340, data: { label: 'chatroom_message',     icon: '🗂', description: 'id, chatroom_id, sender, content, created' } },
+      { id: 'chatroom_participant', type: 'action', x: 120, y: 560, width: 360, data: { label: 'chatroom_participant', icon: '🗂', description: 'id, chatroom_id, party_id, created' } },
+      { id: 'internal_chatroom',    type: 'action', x: 680, y: 300, width: 360, data: { label: 'internal_chatroom',    icon: '🗂', description: 'id, name, is_group, organization_id, owner_id, created, updated' } },
+      { id: 'chatroom_audit',       type: 'action', x: 1340,y: 40,  width: 360, data: { label: 'chatroom_audit',       icon: '🗂', description: 'id, chatroom_id, message_id, audit_type_id, audit_action_id, organization_id, action_by, created' } },
+      { id: 'party',                type: 'action', x: 1280,y: 640, width: 300, data: { label: 'party',                icon: '🗂', description: 'id, name, parent, type, status, created, updated' } },
+    ],
+    edges: [
+      { id: 'e1', source: 'chatroom_message',     sourceHandle: 'out', target: 'chatroom_audit',       targetHandle: 'in', label: 'message_id → id',      type: 'smoothstep' },
+      { id: 'e2', source: 'internal_chatroom',    sourceHandle: 'out', target: 'chatroom_message',     targetHandle: 'in', label: 'chatroom_id → id',     type: 'smoothstep' },
+      { id: 'e3', source: 'internal_chatroom',    sourceHandle: 'out', target: 'chatroom_participant', targetHandle: 'in', label: 'chatroom_id → id',     type: 'smoothstep' },
+      { id: 'e4', source: 'internal_chatroom',    sourceHandle: 'out', target: 'chatroom_audit',       targetHandle: 'in', label: 'chatroom_id → id',     type: 'bezier' },
+      { id: 'e5', source: 'party',                sourceHandle: 'out', target: 'internal_chatroom',    targetHandle: 'in', label: 'owner_id → id',        type: 'bezier' },
+      { id: 'e6', source: 'party',                sourceHandle: 'out', target: 'chatroom_participant', targetHandle: 'in', label: 'party_id → id',        type: 'smoothstep' },
+      { id: 'e7', source: 'party',                sourceHandle: 'out', target: 'chatroom_audit',       targetHandle: 'in', label: 'action_by/org_id → id',type: 'bezier' },
+    ],
+  },
   blank: { nodes: [], edges: [] },
 };
 
