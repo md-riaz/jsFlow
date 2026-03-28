@@ -59,6 +59,30 @@ function createIvrDigitPorts() {
   ];
 }
 
+function renderIvrMenu(node, bodyEl) {
+  const title = esc(node.data.label ?? node.id);
+  const description = node.data.description ? esc(node.data.description) : '';
+  const routes = node.data.dtmfRoutes && typeof node.data.dtmfRoutes === 'object'
+    ? node.data.dtmfRoutes
+    : {};
+  const digitPorts = [...node.ports]
+    .filter(port => port.type === 'source' && /^d\d$/.test(port.id))
+    .sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)));
+
+  bodyEl.innerHTML = `
+    <div class="ivr-menu">
+      <div class="ivr-menu__header">${title}</div>
+      ${description ? `<div class="ivr-menu__desc">${description}</div>` : ''}
+      <div class="ivr-menu__rows">
+        ${digitPorts.map(port => {
+          const digit = port.label ?? port.id.slice(1);
+          const route = routes[port.id] ? esc(routes[port.id]) : '—';
+          return `<div class="ivr-menu__row"><span class="ivr-menu__digit">Press ${esc(digit)}</span><span class="ivr-menu__route">${route}</span></div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
 const DB_EDGE_STYLE = { type: 'smoothstep', markerEnd: false };
 
 const SCENARIOS = {
@@ -138,7 +162,17 @@ const SCENARIOS = {
       { id: 'holidayVm',   type: 'output',    x: 300, y: 420, width: 200, data: { label: 'Holiday Greeting',   icon: '🏝', description: 'Play message + voicemail' } },
       { id: 'hours',       type: 'condition', x: 560, y: 240, width: 200, data: { label: 'Business Hours',    icon: '⏰', description: 'Open/closed schedule' } },
       { id: 'afterHours',  type: 'output',    x: 560, y: 420, width: 200, data: { label: 'After-hours VM',     icon: '🌙', description: 'Route to voicemail box' } },
-      { id: 'ivr',         type: 'decision',  x: 760, y: 120, width: 420, height: 520, data: { label: 'IVR Menu',           icon: '☎',  description: 'DTMF menu prompt' },
+      { id: 'ivr',         type: 'ivr',       x: 760, y: 120, width: 420, height: 520, data: {
+          label: 'IVR Menu',
+          icon: '☎',
+          description: 'DTMF menu prompt',
+          dtmfRoutes: {
+            d1: 'Sales ring group',
+            d2: 'Support queue',
+            d3: 'Dial extension',
+            d0: 'Voicemail / timeout',
+          },
+        },
         ports: createIvrDigitPorts(),
       },
       { id: 'sales',       type: 'action',    x: 1110,y: 80,  width: 200, data: { label: 'Sales Ring Group',   icon: '💼', description: 'Simultaneous ring (1)' } },
@@ -441,6 +475,7 @@ function initEditor(scenario = 'chatbot') {
     editor.registerNodeType('dbtable', renderDatabaseTable);
     editor.getNodes().forEach(node => editor.updateNode(node.id, { data: { ...node.data } }));
   }
+  editor.registerNodeType('ivr', renderIvrMenu);
 
   editor.on('selectionChange', ({ nodes, edges }) => {
     document.getElementById('statusSelected').textContent =
@@ -528,7 +563,7 @@ function renderNodeProps(content, node, tab) {
         <div class="props-section-title">Node Type</div>
         <div class="field-group">
           <select class="field-select" id="pfType">
-            ${['input','output','action','condition','trigger','decision'].map(t =>
+            ${['input','output','action','condition','trigger','decision','ivr'].map(t =>
               `<option value="${t}" ${node.type === t ? 'selected' : ''}>${t}</option>`).join('')}
           </select>
         </div>
@@ -631,7 +666,7 @@ canvasWrap.addEventListener('drop', e => {
   const world = editor.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
   const isIvrMenu = item.label === 'IVR Menu';
   editor.addNode({
-    type: isIvrMenu ? 'decision' : item.type,
+    type: isIvrMenu ? 'ivr' : item.type,
     x: world.x - 90,
     y: world.y - 30,
     width: isIvrMenu ? 280 : 180,
