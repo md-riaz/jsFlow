@@ -63,3 +63,43 @@ export function defaultPorts(type) {
       ];
   }
 }
+
+/**
+ * Create a node with one input and multiple outputs.
+ * Useful for decision / router style nodes.
+ * @param {Partial<NodeModel> & { outputs?: Array<{ id: string, label?: string }> }} partial
+ * @returns {NodeModel}
+ */
+export function createMultiOutputNode(partial = {}) {
+  const outputs = Array.isArray(partial.outputs) && partial.outputs.length
+    ? partial.outputs
+    : [{ id: 'out', label: 'out' }];
+  const total = outputs.length;
+  const baseHeight = 47;
+  const rowHeight = 21;
+  const minHeight = 60;
+  const height = partial.height ?? Math.max(minHeight, baseHeight + total * rowHeight);
+  const existingRows = partial.data?.outputRows;
+  const outputRows = existingRows && typeof existingRows === 'object'
+    ? existingRows
+    : Object.fromEntries(outputs.map(output => [output.id, '']));
+
+  return createNode({
+    ...partial,
+    height,
+    data: {
+      ...(partial.data ?? {}),
+      outputRows,
+    },
+    ports: [
+      { id: 'in', type: 'target', position: 'left', offset: 0.5, label: 'Input' },
+      ...outputs.map((output, index) => ({
+        id: output.id,
+        label: output.label ?? output.id,
+        type: 'source',
+        position: 'right',
+        offset: total === 1 ? 0.5 : (index + 1) / (total + 1),
+      })),
+    ],
+  });
+}

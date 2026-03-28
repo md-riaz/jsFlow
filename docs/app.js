@@ -352,6 +352,10 @@ editor.<span class="fn">on</span>(<span class="str">'selectionChange'</span>, ({
   setInspector(nodes[<span class="nm">0</span>] ?? edges[<span class="nm">0</span>]);
 });
 
+<span class="cm">// Programmatic delete of currently selected nodes/edges</span>
+<span class="kw">const</span> deleted = editor.<span class="fn">deleteSelection</span>();
+console.<span class="fn">log</span>(<span class="str">'Deleted:'</span>, deleted.nodes, <span class="str">'nodes and'</span>, deleted.edges, <span class="str">'edges'</span>);
+
 <span class="cm">// Available events:</span>
 <span class="cm">// nodeAdd, nodeRemove, nodeMove, nodeClick,</span>
 <span class="cm">// edgeAdd, edgeRemove, edgeClick, connect,</span>
@@ -376,8 +380,34 @@ editor.<span class="fn">registerNodeType</span>(<span class="str">'metric'</span
 <span class="cm">// Then add nodes of that type</span>
 editor.<span class="fn">addNode</span>({
   type: <span class="str">'metric'</span>,  x: <span class="nm">100</span>,  y: <span class="nm">100</span>,
-  data: { label: <span class="str">'Revenue'</span>, value: <span class="str">'$1.2M'</span>, trend: <span class="str">'↑ 12%'</span>, color: <span class="str">'#43c89c'</span> },
+    data: { label: <span class="str">'Revenue'</span>, value: <span class="str">'$1.2M'</span>, trend: <span class="str">'↑ 12%'</span>, color: <span class="str">'#43c89c'</span> },
 });`,
+  },
+  multiOutput: {
+    file: 'multi-output.js',
+    html: `<span class="kw">import</span> { <span class="nm">createMultiOutputNode</span> } <span class="kw">from</span> <span class="str">'jsflow'</span>;
+
+<span class="cm">// Single input + multiple outputs with row UI</span>
+<span class="kw">const</span> router = <span class="fn">createMultiOutputNode</span>({
+  type: <span class="str">'decision'</span>,
+  x: <span class="nm">320</span>, y: <span class="nm">140</span>,
+  data: {
+    label: <span class="str">'Route Intent'</span>,
+    description: <span class="str">'Branch by intent type'</span>,
+    outputRows: {
+      faq: <span class="str">'Knowledge base'</span>,
+      agent: <span class="str">'Escalate to human'</span>,
+      fallback: <span class="str">'Default response'</span>,
+    },
+  },
+  outputs: [
+    { id: <span class="str">'faq'</span>, label: <span class="str">'FAQ'</span> },
+    { id: <span class="str">'agent'</span>, label: <span class="str">'Agent'</span> },
+    { id: <span class="str">'fallback'</span>, label: <span class="str">'Other'</span> },
+  ],
+});
+
+editor.<span class="fn">addNode</span>(router);`,
   },
   plugins: {
     file: 'plugin.js',
@@ -673,7 +703,7 @@ document.getElementById('btnSnap').addEventListener('click', e => {
 
 document.getElementById('btnAnimated').addEventListener('click', e => {
   animatedMode = !animatedMode;
-  if (editor) editor.getEdges().forEach(edge => editor.updateEdge(edge.id, { animated: animatedMode }));
+  if (editor) editor.updateEdges({ animated: animatedMode });
   e.currentTarget.style.color = animatedMode ? 'var(--c-accent)' : '';
 });
 
@@ -704,7 +734,7 @@ document.getElementById('btnReadonly').addEventListener('click', e => {
 document.getElementById('btnClear').addEventListener('click', () => {
   if (!editor) return;
   if (!confirm('Clear all nodes and edges?')) return;
-  editor.getNodes().forEach(n => editor.removeNode(n.id));
+  editor.clearGraph();
 });
 
 // ── Scenario tabs ─────────────────────────────────────────────────────────────

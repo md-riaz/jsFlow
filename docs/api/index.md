@@ -131,6 +131,45 @@ new FlowEditor({
 
 ---
 
+### Helper: `createMultiOutputNode()`
+
+For decision / router nodes (single input + multiple outputs), use the helper instead of manually calculating ports:
+
+```js
+import { createMultiOutputNode } from './src/index.js';
+
+const router = createMultiOutputNode({
+  type: 'decision',
+  x: 320,
+  y: 140,
+  data: {
+    label: 'Route Intent',
+    description: 'Branch by intent type',
+    outputRows: {
+      faq: 'Knowledge base',
+      agent: 'Escalate to human',
+      fallback: 'Default response',
+    },
+  },
+  outputs: [
+    { id: 'faq', label: 'FAQ' },
+    { id: 'agent', label: 'Agent' },
+    { id: 'fallback', label: 'Other' },
+  ],
+});
+
+editor.addNode(router);
+```
+
+What it configures:
+
+- One left-side input handle: `in`
+- Evenly distributed right-side output handles from `outputs`
+- `data.outputRows` support for the default row-based node UI
+- Auto height sized for row-based layout (can still be overridden with `height`)
+
+---
+
 ## Edge Model
 
 ```ts
@@ -159,6 +198,7 @@ editor.updateNode(id, changes)     // → NodeModel | undefined
 editor.removeNode(id)              // void
 editor.getNode(id)                 // → NodeModel | undefined
 editor.getNodes()                  // → NodeModel[]
+editor.clearGraph()                // clear all nodes/edges, keep viewport
 ```
 
 ### Edge Methods
@@ -166,6 +206,7 @@ editor.getNodes()                  // → NodeModel[]
 ```js
 editor.addEdge(partial)            // → EdgeModel
 editor.updateEdge(id, changes)     // → EdgeModel | undefined
+editor.updateEdges(changes, edgeIds?) // bulk update all (or specified) edges
 editor.removeEdge(id)              // void
 editor.getEdge(id)                 // → EdgeModel | undefined
 editor.getEdges()                  // → EdgeModel[]
@@ -177,6 +218,10 @@ editor.getEdges()                  // → EdgeModel[]
 editor.fitView(padding?)           // fit all nodes into view
 editor.centerView()                // center without zoom change
 editor.zoomTo(zoomLevel)           // set exact zoom
+editor.setMinZoom(zoomLevel)       // update minimum zoom at runtime
+editor.setMaxZoom(zoomLevel)       // update maximum zoom at runtime
+editor.getMinZoom()                // → current minimum zoom
+editor.getMaxZoom()                // → current maximum zoom
 editor.setViewport({ x, y, zoom }) // set viewport state
 editor.getViewport()               // → { x, y, zoom }
 ```
@@ -187,6 +232,8 @@ editor.getViewport()               // → { x, y, zoom }
 editor.setSelection(nodeIds, edgeIds)  // replace selection
 editor.clearSelection()                // deselect all
 editor.getSelectedNodes()              // → NodeModel[]
+editor.getSelectedEdges()              // → EdgeModel[]
+editor.deleteSelection()               // → { nodes, edges } removed with history support
 ```
 
 ### History / Undo–Redo
@@ -209,6 +256,12 @@ editor.import(data)         // load from plain object
 ```js
 editor.setReadonly(true)    // disable all interactions
 editor.setReadonly(false)
+editor.getReadonly()        // → boolean
+editor.setSnapToGrid(true, 24)
+editor.getSnapToGrid()      // → boolean
+editor.getGridSize()        // → number
+editor.setIsValidConnection((ctx) => true)
+editor.getIsValidConnection() // → Function | undefined
 ```
 
 ### Coordinate Helpers

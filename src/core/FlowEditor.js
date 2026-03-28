@@ -109,6 +109,17 @@ export class FlowEditor {
 
   getNode(id)  { return this._store.nodes.get(id); }
   getNodes()   { return this._store.getNodes(); }
+  clearGraph() {
+    if (!this._store.nodes.size && !this._store.edges.size) return;
+    const snap = this._store.snapshot();
+    const edgeIds = [...this._store.edges.keys()];
+    const nodeIds = [...this._store.nodes.keys()];
+    this._history.suspend(() => {
+      for (const id of edgeIds) this._store.removeEdge(id);
+      for (const id of nodeIds) this._store.removeNode(id);
+    });
+    this._history.push('Clear graph', snap);
+  }
 
   // ─── Edges ────────────────────────────────────────────────────────────────
 
@@ -129,6 +140,15 @@ export class FlowEditor {
 
   getEdge(id)  { return this._store.edges.get(id); }
   getEdges()   { return this._store.getEdges(); }
+  updateEdges(changes, edgeIds) {
+    const ids = edgeIds ?? [...this._store.edges.keys()];
+    if (!ids.length) return;
+    const snap = this._store.snapshot();
+    this._history.suspend(() => {
+      for (const id of ids) this._store.updateEdge(id, changes);
+    });
+    this._history.push(`Update ${ids.length} edge(s)`, snap);
+  }
 
   // ─── Viewport ─────────────────────────────────────────────────────────────
 
@@ -140,6 +160,10 @@ export class FlowEditor {
 
   zoomIn()  { this._viewportEngine.zoomAt(0.2, this._container.clientWidth / 2, this._container.clientHeight / 2); }
   zoomOut() { this._viewportEngine.zoomAt(-0.2, this._container.clientWidth / 2, this._container.clientHeight / 2); }
+  setMinZoom(zoom) { this._viewportEngine.minZoom = zoom; }
+  setMaxZoom(zoom) { this._viewportEngine.maxZoom = zoom; }
+  getMinZoom()     { return this._viewportEngine.minZoom; }
+  getMaxZoom()     { return this._viewportEngine.maxZoom; }
 
   // ─── Selection ────────────────────────────────────────────────────────────
 
@@ -147,6 +171,23 @@ export class FlowEditor {
   clearSelection()                     { this._store.clearSelection(); }
   selectAll()                          { this._store.setSelection([...this._store.nodes.keys()], [...this._store.edges.keys()]); }
   getSelectedNodes()                   { return this._store.getSelectedNodes(); }
+  getSelectedEdges()                   { return this._store.getSelectedEdges(); }
+  deleteSelection() {
+    const selectedNodeIds = [...this._store.selectedNodeIds];
+    const selectedEdgeIds = [...this._store.selectedEdgeIds];
+    if (!selectedNodeIds.length && !selectedEdgeIds.length) return { nodes: 0, edges: 0 };
+
+    const snap = this._store.snapshot();
+    this._history.suspend(() => {
+      for (const id of selectedEdgeIds) this._store.removeEdge(id);
+      for (const id of selectedNodeIds) this._store.removeNode(id);
+    });
+    this._history.push(
+      `Delete selection (${selectedNodeIds.length} node(s), ${selectedEdgeIds.length} edge(s))`,
+      snap,
+    );
+    return { nodes: selectedNodeIds.length, edges: selectedEdgeIds.length };
+  }
 
   // ─── Undo / Redo ──────────────────────────────────────────────────────────
 
@@ -193,6 +234,10 @@ export class FlowEditor {
   }
 
   setIsValidConnection(fn) { this._interactions.setIsValidConnection(fn); }
+  getReadonly()            { return this._interactions.getReadonly(); }
+  getSnapToGrid()          { return this._interactions.getSnapToGrid(); }
+  getGridSize()            { return this._interactions.getGridSize(); }
+  getIsValidConnection()   { return this._interactions.getIsValidConnection(); }
 
   // ─── Custom renderers ─────────────────────────────────────────────────────
 
