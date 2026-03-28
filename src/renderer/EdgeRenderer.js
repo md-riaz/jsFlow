@@ -182,8 +182,8 @@ export class EdgeRenderer {
     const srcPort = sourceNode.ports.find(p => p.id === edge.sourceHandle) ?? { position: 'bottom' };
     const tgtPort = targetNode.ports.find(p => p.id === edge.targetHandle) ?? { position: 'top' };
 
-    const src = handlePosition(sourceNode, srcPort.position);
-    const tgt = handlePosition(targetNode, tgtPort.position);
+    const src = handlePosition(sourceNode, srcPort.position, srcPort.offset);
+    const tgt = handlePosition(targetNode, tgtPort.position, tgtPort.offset);
     const d = this._computePath(edge, src, tgt, srcPort.position, tgtPort.position);
 
     const hitPath = g.querySelector('.jf-edge__hit');

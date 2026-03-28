@@ -77,6 +77,41 @@ const SCENARIOS = {
       { id: 'e9', source: 'model',  sourceHandle: 'out', target: 'alert',  targetHandle: 'in', type: 'bezier' },
     ],
   },
+  callcenter: {
+    nodes: [
+      { id: 'inbound',     type: 'input',     x: 40,  y: 240, width: 200, data: { label: 'Incoming Call',     icon: '📞', description: 'SIP / PSTN trigger' } },
+      { id: 'holiday',     type: 'condition', x: 300, y: 240, width: 200, data: { label: 'Check Holidays',    icon: '🎄', description: 'Calendar lookup' } },
+      { id: 'holidayVm',   type: 'output',    x: 300, y: 420, width: 200, data: { label: 'Holiday Greeting',   icon: '🏝', description: 'Play message + voicemail' } },
+      { id: 'hours',       type: 'condition', x: 560, y: 240, width: 200, data: { label: 'Business Hours',    icon: '⏰', description: 'Open/closed schedule' } },
+      { id: 'afterHours',  type: 'output',    x: 560, y: 420, width: 200, data: { label: 'After-hours VM',     icon: '🌙', description: 'Route to voicemail box' } },
+      { id: 'ivr',         type: 'decision',  x: 760, y: 120, width: 420, height: 520, data: { label: 'IVR Menu',           icon: '☎',  description: 'DTMF menu prompt' },
+        ports: [
+          { id: 'in', type: 'target', position: 'left', offset: 0.5, label: 'Input' },
+          ...['0','1','2','3','4','5','6','7','8','9'].map((d, i) => ({
+            id: `d${d}`, type: 'source', position: 'right', offset: 0.05 + i * 0.095, label: d,
+          })),
+        ],
+      },
+      { id: 'sales',       type: 'action',    x: 1110,y: 80,  width: 200, data: { label: 'Sales Ring Group',   icon: '💼', description: 'Simultaneous ring (1)' } },
+      { id: 'support',     type: 'action',    x: 1110,y: 200, width: 200, data: { label: 'Support Queue',      icon: '🛠', description: 'Ring group / queue (2)' } },
+      { id: 'extension',   type: 'action',    x: 1110,y: 320, width: 200, data: { label: 'Dial Extension',     icon: '🔢', description: 'Direct extension (3)' } },
+      { id: 'voicemail',   type: 'action',    x: 1110,y: 440, width: 200, data: { label: 'Voicemail Mailbox',  icon: '📥', description: '0 / timeout to VM' } },
+      { id: 'operator',    type: 'output',    x: 1350,y: 200, width: 200, data: { label: 'Operator / Main',    icon: '👤', description: 'Fallback operator' } },
+    ],
+    edges: [
+      { id: 'e1',  source: 'inbound',   sourceHandle: 'out', target: 'holiday',    targetHandle: 'in', type: 'smoothstep', animated: true },
+      { id: 'e2',  source: 'holiday',   sourceHandle: 'out', target: 'hours',      targetHandle: 'in', label: 'not holiday', type: 'smoothstep' },
+      { id: 'e3',  source: 'holiday',   sourceHandle: 'out', target: 'holidayVm',  targetHandle: 'in', label: 'holiday', type: 'bezier' },
+      { id: 'e4',  source: 'hours',     sourceHandle: 'out', target: 'ivr',        targetHandle: 'in', label: 'open', type: 'smoothstep' },
+      { id: 'e5',  source: 'hours',     sourceHandle: 'out', target: 'afterHours', targetHandle: 'in', label: 'closed', type: 'bezier' },
+      { id: 'e6',  source: 'ivr',       sourceHandle: 'd1',  target: 'sales',      targetHandle: 'in', label: 'press 1', type: 'bezier' },
+      { id: 'e7',  source: 'ivr',       sourceHandle: 'd2',  target: 'support',    targetHandle: 'in', label: 'press 2', type: 'bezier' },
+      { id: 'e8',  source: 'ivr',       sourceHandle: 'd3',  target: 'extension',  targetHandle: 'in', label: 'press 3', type: 'bezier' },
+      { id: 'e9',  source: 'ivr',       sourceHandle: 'd0',  target: 'voicemail',  targetHandle: 'in', label: 'press 0 / timeout', type: 'bezier' },
+      { id: 'e10', source: 'support',   sourceHandle: 'out', target: 'operator',   targetHandle: 'in', label: 'fallback', type: 'smoothstep' },
+      { id: 'e11', source: 'voicemail', sourceHandle: 'out', target: 'operator',   targetHandle: 'in', label: 'operator key', type: 'smoothstep' },
+    ],
+  },
   blank: { nodes: [], edges: [] },
 };
 
@@ -98,6 +133,12 @@ const PALETTE_TYPES = [
     { type: 'action',    label: 'Database',   icon: '🗄', desc: 'SQL / NoSQL query',   color: '#b06af3' },
     { type: 'action',    label: 'Email',      icon: '📧', desc: 'Send email',          color: '#f35858' },
     { type: 'action',    label: 'AI/LLM',     icon: '🤖', desc: 'Language model call', color: '#4f7df3', badge: 'AI' },
+  ]},
+  { group: 'Telephony', items: [
+    { type: 'action',    label: 'IVR Menu',   icon: '☎',  desc: 'DTMF routing menu',   color: '#f3d24f' },
+    { type: 'action',    label: 'Ring Group', icon: '📞', desc: 'Simultaneous ring',    color: '#43c89c' },
+    { type: 'action',    label: 'Voicemail',  icon: '📥', desc: 'Mailbox / greeting',   color: '#f35858' },
+    { type: 'action',    label: 'Extension',  icon: '🔢', desc: 'Direct extension dial',color: '#4a5080' },
   ]},
 ];
 

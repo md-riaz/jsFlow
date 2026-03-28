@@ -64,18 +64,20 @@ export function nodeCenter(node) {
  * Handle positions: 'top' | 'bottom' | 'left' | 'right'
  * @param {{ x: number, y: number, width: number, height: number }} node
  * @param {string} position
+ * @param {number} [offset=0.5] - Normalised offset (0..1) along the edge for top/bottom (X) or left/right (Y)
  * @returns {Point}
  */
-export function handlePosition(node, position) {
+export function handlePosition(node, position, offset = 0.5) {
+  const clampOffset = Math.min(1, Math.max(0, offset));
   switch (position) {
     case 'top':
-      return { x: node.x + node.width / 2, y: node.y };
+      return { x: node.x + node.width * clampOffset, y: node.y };
     case 'bottom':
-      return { x: node.x + node.width / 2, y: node.y + node.height };
+      return { x: node.x + node.width * clampOffset, y: node.y + node.height };
     case 'left':
-      return { x: node.x, y: node.y + node.height / 2 };
+      return { x: node.x, y: node.y + node.height * clampOffset };
     case 'right':
-      return { x: node.x + node.width, y: node.y + node.height / 2 };
+      return { x: node.x + node.width, y: node.y + node.height * clampOffset };
     default:
       return nodeCenter(node);
   }

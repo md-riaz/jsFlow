@@ -131,7 +131,7 @@ export class CanvasRenderer {
     if (!srcNode) return;
     const srcPort = srcNode.ports.find(p => p.id === conn.sourceHandle);
     const srcPos  = srcPort?.position ?? 'bottom';
-    const src = handlePosition(srcNode, srcPos);
+    const src = handlePosition(srcNode, srcPos, srcPort?.offset);
     this.edges.renderPreview(src, { x: conn.x, y: conn.y }, srcPos);
   }
 
