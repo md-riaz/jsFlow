@@ -46,6 +46,19 @@ function createDbNode({ id, x, y, width, label, accent, columns }) {
   };
 }
 
+function createIvrDigitPorts() {
+  return [
+    { id: 'in', type: 'target', position: 'left', offset: 0.5, label: 'Input' },
+    ...['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit, index) => ({
+      id: `d${digit}`,
+      type: 'source',
+      position: 'right',
+      offset: 0.05 + index * 0.095,
+      label: digit,
+    })),
+  ];
+}
+
 const DB_EDGE_STYLE = { type: 'smoothstep', markerEnd: false };
 
 const SCENARIOS = {
@@ -126,12 +139,7 @@ const SCENARIOS = {
       { id: 'hours',       type: 'condition', x: 560, y: 240, width: 200, data: { label: 'Business Hours',    icon: '⏰', description: 'Open/closed schedule' } },
       { id: 'afterHours',  type: 'output',    x: 560, y: 420, width: 200, data: { label: 'After-hours VM',     icon: '🌙', description: 'Route to voicemail box' } },
       { id: 'ivr',         type: 'decision',  x: 760, y: 120, width: 420, height: 520, data: { label: 'IVR Menu',           icon: '☎',  description: 'DTMF menu prompt' },
-        ports: [
-          { id: 'in', type: 'target', position: 'left', offset: 0.5, label: 'Input' },
-          ...['0','1','2','3','4','5','6','7','8','9'].map((d, i) => ({
-            id: `d${d}`, type: 'source', position: 'right', offset: 0.05 + i * 0.095, label: d,
-          })),
-        ],
+        ports: createIvrDigitPorts(),
       },
       { id: 'sales',       type: 'action',    x: 1110,y: 80,  width: 200, data: { label: 'Sales Ring Group',   icon: '💼', description: 'Simultaneous ring (1)' } },
       { id: 'support',     type: 'action',    x: 1110,y: 200, width: 200, data: { label: 'Support Queue',      icon: '🛠', description: 'Ring group / queue (2)' } },
@@ -621,7 +629,16 @@ canvasWrap.addEventListener('drop', e => {
   const item  = JSON.parse(raw);
   const rect  = document.getElementById('flow-canvas').getBoundingClientRect();
   const world = editor.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
-  editor.addNode({ type: item.type, x: world.x - 90, y: world.y - 30, width: 180, data: { label: item.label, icon: item.icon, description: item.desc } });
+  const isIvrMenu = item.label === 'IVR Menu';
+  editor.addNode({
+    type: isIvrMenu ? 'decision' : item.type,
+    x: world.x - 90,
+    y: world.y - 30,
+    width: isIvrMenu ? 280 : 180,
+    height: isIvrMenu ? 360 : undefined,
+    data: { label: item.label, icon: item.icon, description: item.desc },
+    ports: isIvrMenu ? createIvrDigitPorts() : undefined,
+  });
 });
 
 // ── Drag indicator ────────────────────────────────────────────────────────────
