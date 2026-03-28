@@ -115,6 +115,18 @@ new FlowEditor({
   type:     'source' | 'target'
   position: 'top' | 'bottom' | 'left' | 'right'
 }
+
+// Defaults:
+// - input nodes:    one source on the right
+// - output nodes:   one target on the left
+// - other nodes:    target on the left, source on the right
+//
+// Custom layouts (including 1-in / multi-out) are supported by passing a ports array:
+// ports: [
+//   { id: 'in',  type: 'target', position: 'left' },
+//   { id: 'yes', type: 'source', position: 'right' },
+//   { id: 'no',  type: 'source', position: 'bottom' },
+// ]
 ```
 
 ---
