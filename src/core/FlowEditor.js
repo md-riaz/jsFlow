@@ -109,6 +109,15 @@ export class FlowEditor {
 
   getNode(id)  { return this._store.nodes.get(id); }
   getNodes()   { return this._store.getNodes(); }
+  clearGraph() {
+    if (!this._store.nodes.size && !this._store.edges.size) return;
+    const snap = this._store.snapshot();
+    const ids = [...this._store.nodes.keys()];
+    this._history.suspend(() => {
+      for (const id of ids) this._store.removeNode(id);
+    });
+    this._history.push('Clear graph', snap);
+  }
 
   // ─── Edges ────────────────────────────────────────────────────────────────
 
@@ -129,6 +138,9 @@ export class FlowEditor {
 
   getEdge(id)  { return this._store.edges.get(id); }
   getEdges()   { return this._store.getEdges(); }
+  updateEdges(changes, edgeIds = [...this._store.edges.keys()]) {
+    for (const id of edgeIds) this._store.updateEdge(id, changes);
+  }
 
   // ─── Viewport ─────────────────────────────────────────────────────────────
 

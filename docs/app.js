@@ -673,7 +673,7 @@ document.getElementById('btnSnap').addEventListener('click', e => {
 
 document.getElementById('btnAnimated').addEventListener('click', e => {
   animatedMode = !animatedMode;
-  if (editor) editor.getEdges().forEach(edge => editor.updateEdge(edge.id, { animated: animatedMode }));
+  if (editor) editor.updateEdges({ animated: animatedMode });
   e.currentTarget.style.color = animatedMode ? 'var(--c-accent)' : '';
 });
 
@@ -704,7 +704,7 @@ document.getElementById('btnReadonly').addEventListener('click', e => {
 document.getElementById('btnClear').addEventListener('click', () => {
   if (!editor) return;
   if (!confirm('Clear all nodes and edges?')) return;
-  editor.getNodes().forEach(n => editor.removeNode(n.id));
+  editor.clearGraph();
 });
 
 // ── Scenario tabs ─────────────────────────────────────────────────────────────

@@ -159,6 +159,7 @@ editor.updateNode(id, changes)     // → NodeModel | undefined
 editor.removeNode(id)              // void
 editor.getNode(id)                 // → NodeModel | undefined
 editor.getNodes()                  // → NodeModel[]
+editor.clearGraph()                // clear all nodes/edges, keep viewport
 ```
 
 ### Edge Methods
@@ -166,6 +167,7 @@ editor.getNodes()                  // → NodeModel[]
 ```js
 editor.addEdge(partial)            // → EdgeModel
 editor.updateEdge(id, changes)     // → EdgeModel | undefined
+editor.updateEdges(changes, edgeIds?) // bulk update all (or selected) edges
 editor.removeEdge(id)              // void
 editor.getEdge(id)                 // → EdgeModel | undefined
 editor.getEdges()                  // → EdgeModel[]
