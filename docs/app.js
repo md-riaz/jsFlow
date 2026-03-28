@@ -352,6 +352,10 @@ editor.<span class="fn">on</span>(<span class="str">'selectionChange'</span>, ({
   setInspector(nodes[<span class="nm">0</span>] ?? edges[<span class="nm">0</span>]);
 });
 
+<span class="cm">// Programmatic delete of currently selected nodes/edges</span>
+<span class="kw">const</span> deleted = editor.<span class="fn">deleteSelection</span>();
+console.<span class="fn">log</span>(<span class="str">'Deleted:'</span>, deleted.nodes, <span class="str">'nodes and'</span>, deleted.edges, <span class="str">'edges'</span>);
+
 <span class="cm">// Available events:</span>
 <span class="cm">// nodeAdd, nodeRemove, nodeMove, nodeClick,</span>
 <span class="cm">// edgeAdd, edgeRemove, edgeClick, connect,</span>

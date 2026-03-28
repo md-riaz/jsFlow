@@ -233,6 +233,7 @@ editor.setSelection(nodeIds, edgeIds)  // replace selection
 editor.clearSelection()                // deselect all
 editor.getSelectedNodes()              // → NodeModel[]
 editor.getSelectedEdges()              // → EdgeModel[]
+editor.deleteSelection()               // → { nodes, edges } removed with history support
 ```
 
 ### History / Undo–Redo

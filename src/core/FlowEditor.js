@@ -172,6 +172,22 @@ export class FlowEditor {
   selectAll()                          { this._store.setSelection([...this._store.nodes.keys()], [...this._store.edges.keys()]); }
   getSelectedNodes()                   { return this._store.getSelectedNodes(); }
   getSelectedEdges()                   { return this._store.getSelectedEdges(); }
+  deleteSelection() {
+    const selectedNodeIds = [...this._store.selectedNodeIds];
+    const selectedEdgeIds = [...this._store.selectedEdgeIds];
+    if (!selectedNodeIds.length && !selectedEdgeIds.length) return { nodes: 0, edges: 0 };
+
+    const snap = this._store.snapshot();
+    this._history.suspend(() => {
+      for (const id of selectedEdgeIds) this._store.removeEdge(id);
+      for (const id of selectedNodeIds) this._store.removeNode(id);
+    });
+    this._history.push(
+      `Delete selection (${selectedNodeIds.length} node(s), ${selectedEdgeIds.length} edge(s))`,
+      snap,
+    );
+    return { nodes: selectedNodeIds.length, edges: selectedEdgeIds.length };
+  }
 
   // ─── Undo / Redo ──────────────────────────────────────────────────────────
 
