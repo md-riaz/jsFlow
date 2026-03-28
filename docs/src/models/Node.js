@@ -53,13 +53,13 @@ export function createNode(partial = {}) {
 export function defaultPorts(type) {
   switch (type) {
     case 'input':
-      return [{ id: 'out', type: 'source', position: 'bottom' }];
+      return [{ id: 'out', type: 'source', position: 'right' }];
     case 'output':
-      return [{ id: 'in', type: 'target', position: 'top' }];
+      return [{ id: 'in', type: 'target', position: 'left' }];
     default:
       return [
-        { id: 'in', type: 'target', position: 'top' },
-        { id: 'out', type: 'source', position: 'bottom' },
+        { id: 'in', type: 'target', position: 'left' },
+        { id: 'out', type: 'source', position: 'right' },
       ];
   }
 }
